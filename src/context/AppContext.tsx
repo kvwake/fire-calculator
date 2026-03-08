@@ -26,6 +26,8 @@ const defaultState: AppState = {
     inflationRate: 3,
     state: 'TX',
     filingStatus: 'married',
+    retirementAge: 55,
+    cashYearsOfExpenses: 2,
   },
 };
 
@@ -107,7 +109,17 @@ function loadState(): AppState {
     const saved = localStorage.getItem(STORAGE_KEY);
     if (saved) {
       const parsed = JSON.parse(saved);
-      return { ...defaultState, ...parsed };
+      // Merge with defaults to handle new fields
+      return {
+        ...defaultState,
+        ...parsed,
+        settings: { ...defaultState.settings, ...parsed.settings },
+        spending: {
+          ...defaultState.spending,
+          ...parsed.spending,
+          healthcare: { ...defaultState.spending.healthcare, ...parsed.spending?.healthcare },
+        },
+      };
     }
   } catch {
     // ignore

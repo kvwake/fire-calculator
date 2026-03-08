@@ -1,19 +1,8 @@
 import { useAppState } from '../context/AppContext';
 import { Account, AccountType, ACCOUNT_TYPE_LABELS } from '../types';
+import NumberInput from './NumberInput';
 
-const emptyAccount = (ownerId: string): Account => ({
-  id: crypto.randomUUID(),
-  name: '',
-  type: 'traditional',
-  owner: ownerId,
-  balance: 0,
-  annualContribution: 0,
-  expectedReturn: 7,
-  costBasis: 0,
-  seppEnabled: false,
-});
-
-const accountTypes: AccountType[] = ['traditional', 'roth', 'taxable', 'hsa', 'generic'];
+const accountTypes: AccountType[] = ['traditional', 'roth', 'taxable', 'hsa', 'cash', 'generic'];
 
 function formatCurrency(val: number): string {
   return new Intl.NumberFormat('en-US', {
@@ -35,8 +24,18 @@ export default function AccountsSetup() {
   }
 
   const addAccount = () => {
-    const account = emptyAccount(state.people[0].id);
-    account.name = `Account ${state.accounts.length + 1}`;
+    const account: Account = {
+      id: crypto.randomUUID(),
+      name: `Account ${state.accounts.length + 1}`,
+      type: 'traditional',
+      owner: state.people[0].id,
+      balance: 0,
+      annualContribution: 0,
+      contributionEndAge: state.settings.retirementAge,
+      expectedReturn: 7,
+      costBasis: 0,
+      seppEnabled: false,
+    };
     dispatch({ type: 'ADD_ACCOUNT', payload: account });
   };
 
@@ -135,14 +134,10 @@ export default function AccountsSetup() {
 
               <div>
                 <label className="block text-sm font-medium text-gray-700">Current Balance ($)</label>
-                <input
-                  type="number"
-                  min={0}
+                <NumberInput
                   value={account.balance}
-                  onChange={(e) =>
-                    updateAccount({ ...account, balance: parseFloat(e.target.value) || 0 })
-                  }
-                  className="mt-1 block w-full rounded-md border border-gray-300 px-3 py-2 shadow-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
+                  onChange={(v) => updateAccount({ ...account, balance: v })}
+                  min={0}
                 />
               </div>
 
@@ -150,37 +145,39 @@ export default function AccountsSetup() {
                 <label className="block text-sm font-medium text-gray-700">
                   Annual Contribution ($)
                 </label>
-                <input
-                  type="number"
-                  min={0}
+                <NumberInput
                   value={account.annualContribution}
-                  onChange={(e) =>
-                    updateAccount({
-                      ...account,
-                      annualContribution: parseFloat(e.target.value) || 0,
-                    })
-                  }
-                  className="mt-1 block w-full rounded-md border border-gray-300 px-3 py-2 shadow-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
+                  onChange={(v) => updateAccount({ ...account, annualContribution: v })}
+                  min={0}
                 />
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700">
+                  Stop Contributions (owner age)
+                </label>
+                <NumberInput
+                  value={account.contributionEndAge ?? state.settings.retirementAge}
+                  onChange={(v) => updateAccount({ ...account, contributionEndAge: v })}
+                  decimals={false}
+                  min={18}
+                  max={80}
+                />
+                <p className="mt-1 text-xs text-gray-500">
+                  Default: retirement age ({state.settings.retirementAge})
+                </p>
               </div>
 
               <div>
                 <label className="block text-sm font-medium text-gray-700">
                   Expected Return (%)
                 </label>
-                <input
-                  type="number"
+                <NumberInput
+                  value={account.expectedReturn}
+                  onChange={(v) => updateAccount({ ...account, expectedReturn: v })}
                   min={0}
                   max={20}
                   step={0.1}
-                  value={account.expectedReturn}
-                  onChange={(e) =>
-                    updateAccount({
-                      ...account,
-                      expectedReturn: parseFloat(e.target.value) || 0,
-                    })
-                  }
-                  className="mt-1 block w-full rounded-md border border-gray-300 px-3 py-2 shadow-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
                 />
               </div>
 
@@ -189,17 +186,10 @@ export default function AccountsSetup() {
                   <label className="block text-sm font-medium text-gray-700">
                     Cost Basis ($)
                   </label>
-                  <input
-                    type="number"
-                    min={0}
+                  <NumberInput
                     value={account.costBasis}
-                    onChange={(e) =>
-                      updateAccount({
-                        ...account,
-                        costBasis: parseFloat(e.target.value) || 0,
-                      })
-                    }
-                    className="mt-1 block w-full rounded-md border border-gray-300 px-3 py-2 shadow-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
+                    onChange={(v) => updateAccount({ ...account, costBasis: v })}
+                    min={0}
                   />
                   <p className="mt-1 text-xs text-gray-500">
                     What you originally invested (not including gains)

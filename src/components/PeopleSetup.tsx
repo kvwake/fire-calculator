@@ -1,11 +1,11 @@
 import { useAppState } from '../context/AppContext';
 import { Person } from '../types';
+import NumberInput from './NumberInput';
 
 const emptyPerson = (): Person => ({
   id: crypto.randomUUID(),
   name: '',
   currentAge: 30,
-  retirementAge: 55,
   lifeExpectancy: 95,
 });
 
@@ -30,6 +30,24 @@ export default function PeopleSetup() {
         },
       ],
     });
+    // Add default cash account on first person
+    if (state.people.length === 0) {
+      dispatch({
+        type: 'ADD_ACCOUNT',
+        payload: {
+          id: crypto.randomUUID(),
+          name: 'Cash / Emergency Fund',
+          type: 'cash',
+          owner: person.id,
+          balance: 0,
+          annualContribution: 0,
+          contributionEndAge: state.settings.retirementAge,
+          expectedReturn: 4,
+          costBasis: 0,
+          seppEnabled: false,
+        },
+      });
+    }
   };
 
   const updatePerson = (person: Person) => {
@@ -90,41 +108,22 @@ export default function PeopleSetup() {
               </div>
               <div>
                 <label className="block text-sm font-medium text-gray-700">Current Age</label>
-                <input
-                  type="number"
+                <NumberInput
+                  value={person.currentAge}
+                  onChange={(v) => updatePerson({ ...person, currentAge: v })}
+                  decimals={false}
                   min={18}
                   max={65}
-                  value={person.currentAge}
-                  onChange={(e) =>
-                    updatePerson({ ...person, currentAge: parseInt(e.target.value) || 18 })
-                  }
-                  className="mt-1 block w-full rounded-md border border-gray-300 px-3 py-2 shadow-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
-                />
-              </div>
-              <div>
-                <label className="block text-sm font-medium text-gray-700">Target Retirement Age</label>
-                <input
-                  type="number"
-                  min={person.currentAge}
-                  max={80}
-                  value={person.retirementAge}
-                  onChange={(e) =>
-                    updatePerson({ ...person, retirementAge: parseInt(e.target.value) || 55 })
-                  }
-                  className="mt-1 block w-full rounded-md border border-gray-300 px-3 py-2 shadow-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
                 />
               </div>
               <div>
                 <label className="block text-sm font-medium text-gray-700">Life Expectancy</label>
-                <input
-                  type="number"
-                  min={person.retirementAge}
-                  max={120}
+                <NumberInput
                   value={person.lifeExpectancy}
-                  onChange={(e) =>
-                    updatePerson({ ...person, lifeExpectancy: parseInt(e.target.value) || 95 })
-                  }
-                  className="mt-1 block w-full rounded-md border border-gray-300 px-3 py-2 shadow-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
+                  onChange={(v) => updatePerson({ ...person, lifeExpectancy: v })}
+                  decimals={false}
+                  min={50}
+                  max={120}
                 />
               </div>
             </div>

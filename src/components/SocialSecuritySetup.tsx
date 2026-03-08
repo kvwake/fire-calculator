@@ -6,6 +6,7 @@ import {
   getClaimingAdjustmentPercent,
   getAnnualSSBenefit,
 } from '../data/socialSecurity';
+import NumberInput from './NumberInput';
 
 function formatCurrency(val: number): string {
   return new Intl.NumberFormat('en-US', {
@@ -78,22 +79,17 @@ export default function SocialSecuritySetup() {
                       <label className="block text-sm font-medium text-gray-700">
                         Monthly Benefit at FRA (age 67)
                       </label>
-                      <input
-                        type="number"
-                        min={0}
-                        max={MAX_MONTHLY_BENEFIT_AT_FRA}
+                      <NumberInput
                         value={ssConfig.monthlyBenefitAtFRA}
-                        onChange={(e) => {
-                          const val = Math.min(
-                            parseFloat(e.target.value) || 0,
-                            MAX_MONTHLY_BENEFIT_AT_FRA
-                          );
+                        onChange={(v) => {
+                          const val = Math.min(v, MAX_MONTHLY_BENEFIT_AT_FRA);
                           dispatch({
                             type: 'UPDATE_SS_CONFIG',
                             payload: { ...ssConfig, monthlyBenefitAtFRA: val },
                           });
                         }}
-                        className="mt-1 block w-full rounded-md border border-gray-300 px-3 py-2 shadow-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
+                        min={0}
+                        max={MAX_MONTHLY_BENEFIT_AT_FRA}
                       />
                       {ssConfig.monthlyBenefitAtFRA > MAX_MONTHLY_BENEFIT_AT_FRA && (
                         <p className="mt-1 text-xs text-red-600">

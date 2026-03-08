@@ -1,6 +1,6 @@
 import { AppState, YearResult, SimulationResult, Account } from '../types';
 import { getAnnualSSBenefit } from '../data/socialSecurity';
-import { calculateRMD, accountHasRMD, getRMDStartAge } from '../data/rmd';
+import { calculateRMD, accountHasRMD } from '../data/rmd';
 import { calculateSEPPPayment, isSEPPRequired } from './sepp';
 import { optimizeWithdrawals } from './withdrawal';
 
@@ -21,17 +21,21 @@ export function runSimulation(state: AppState): SimulationResult {
       successfulRetirement: false,
       totalTaxesPaid: 0,
       portfolioDepletionAge: null,
+      totalNeededAtRetirement: 0,
     };
   }
 
   const inflationRate = state.settings.inflationRate / 100;
+  const retirementAge = state.settings.retirementAge;
   const primaryPerson = state.people[0];
   const secondPerson = state.people.length > 1 ? state.people[1] : null;
 
-  // Determine simulation range
+  // Determine simulation range based on max life expectancy
   const maxAge = Math.max(
     primaryPerson.lifeExpectancy,
-    secondPerson ? secondPerson.lifeExpectancy + (primaryPerson.currentAge - secondPerson.currentAge) : 0
+    secondPerson
+      ? secondPerson.lifeExpectancy + (primaryPerson.currentAge - secondPerson.currentAge)
+      : 0
   );
   const startAge = primaryPerson.currentAge;
 
@@ -46,17 +50,13 @@ export function runSimulation(state: AppState): SimulationResult {
   const years: YearResult[] = [];
   let totalTaxesPaid = 0;
   let portfolioDepletionAge: number | null = null;
+  let totalNeededAtRetirement = 0;
+  let cashBufferFunded = false;
 
   for (let age = startAge; age <= maxAge; age++) {
     const year = CURRENT_YEAR + (age - startAge);
-    const isRetired = age >= primaryPerson.retirementAge;
+    const inRetirement = age >= retirementAge;
     const person2Age = secondPerson ? secondPerson.currentAge + (age - startAge) : null;
-    const person2Retired = secondPerson && person2Age !== null
-      ? person2Age >= secondPerson.retirementAge
-      : true;
-
-    // Both must be retired for retirement phase
-    const inRetirement = isRetired && person2Retired;
     const birthYear = CURRENT_YEAR - primaryPerson.currentAge;
     const person2BirthYear = secondPerson ? CURRENT_YEAR - secondPerson.currentAge : 0;
 
@@ -67,7 +67,6 @@ export function runSimulation(state: AppState): SimulationResult {
       ages[secondPerson.id] = person2Age;
     }
 
-    // Get owner age for each account
     const getOwnerAge = (ownerId: string): number => {
       if (ownerId === primaryPerson.id) return age;
       if (secondPerson && ownerId === secondPerson.id) return person2Age ?? age;
@@ -82,20 +81,22 @@ export function runSimulation(state: AppState): SimulationResult {
 
     if (!inRetirement) {
       // ACCUMULATION PHASE
-      // Add contributions and grow accounts
       for (const ar of accountRuntimes) {
+        const ownerAge = getOwnerAge(ar.account.owner);
+        const contributionEndAge = ar.account.contributionEndAge ?? retirementAge;
         const realReturn = ar.account.expectedReturn / 100 - inflationRate;
 
-        // Add contributions (in today's dollars)
-        ar.balance += ar.account.annualContribution;
-        if (ar.account.type === 'taxable') {
-          ar.costBasis += ar.account.annualContribution;
+        // Add contributions if owner hasn't hit their end age
+        if (ownerAge < contributionEndAge) {
+          ar.balance += ar.account.annualContribution;
+          if (ar.account.type === 'taxable') {
+            ar.costBasis += ar.account.annualContribution;
+          }
         }
 
         // Grow by real return
         const growth = ar.balance * realReturn;
         ar.balance += growth;
-        // Cost basis doesn't grow with returns
       }
 
       const totalPortfolio = accountRuntimes.reduce((sum, ar) => sum + ar.balance, 0);
@@ -127,6 +128,45 @@ export function runSimulation(state: AppState): SimulationResult {
     }
 
     // RETIREMENT PHASE
+
+    // Fund cash buffer at retirement start
+    if (!cashBufferFunded && state.settings.cashYearsOfExpenses > 0) {
+      cashBufferFunded = true;
+      const spending = calculateSpending(state, age, primaryPerson.id, secondPerson?.id ?? null, ages);
+      const targetCashBalance = spending * state.settings.cashYearsOfExpenses;
+      const cashAccounts = accountRuntimes.filter((ar) => ar.account.type === 'cash');
+      const currentCash = cashAccounts.reduce((sum, ar) => sum + ar.balance, 0);
+      const cashNeeded = Math.max(0, targetCashBalance - currentCash);
+
+      if (cashNeeded > 0 && cashAccounts.length > 0) {
+        // Transfer from non-cash accounts to cash
+        let remaining = cashNeeded;
+        const nonCashAccounts = accountRuntimes.filter((ar) => ar.account.type !== 'cash');
+        // Prefer taxable, then traditional, then roth
+        const orderedSources = [
+          ...nonCashAccounts.filter((ar) => ar.account.type === 'taxable'),
+          ...nonCashAccounts.filter((ar) => ar.account.type === 'traditional'),
+          ...nonCashAccounts.filter((ar) => ar.account.type === 'generic'),
+          ...nonCashAccounts.filter((ar) => ar.account.type === 'roth'),
+          ...nonCashAccounts.filter((ar) => ar.account.type === 'hsa'),
+        ];
+
+        for (const source of orderedSources) {
+          if (remaining <= 0) break;
+          const transfer = Math.min(remaining, source.balance);
+          source.balance -= transfer;
+          remaining -= transfer;
+        }
+
+        // Add to first cash account
+        cashAccounts[0].balance += cashNeeded - remaining;
+      }
+    }
+
+    // Record total portfolio at retirement start for "needed" calculation
+    if (age === retirementAge) {
+      totalNeededAtRetirement = accountRuntimes.reduce((sum, ar) => sum + ar.balance, 0);
+    }
 
     // Calculate required spending for this year
     const spending = calculateSpending(state, age, primaryPerson.id, secondPerson?.id ?? null, ages);
@@ -160,18 +200,16 @@ export function runSimulation(state: AppState): SimulationResult {
       }
     }
 
-    // Calculate SEPP amounts for accounts with SEPP enabled
+    // Calculate SEPP amounts
     const seppWithdrawals: Record<string, number> = {};
     for (const ar of accountRuntimes) {
       if (!ar.account.seppEnabled || ar.account.type !== 'traditional') continue;
       const ownerAge = getOwnerAge(ar.account.owner);
 
       if (ownerAge < 59.5) {
-        // Initialize SEPP start age
         if (ar.seppStartAge === null) {
           ar.seppStartAge = ownerAge;
         }
-
         if (isSEPPRequired(ar.seppStartAge, ownerAge)) {
           const seppAmount = calculateSEPPPayment(ar.balance, Math.floor(ownerAge));
           if (seppAmount > 0) {
@@ -212,7 +250,6 @@ export function runSimulation(state: AppState): SimulationResult {
       const withdrawn = withdrawalPlan.withdrawals[ar.account.id] || 0;
       if (withdrawn > 0) {
         if (ar.account.type === 'taxable' && ar.balance > 0) {
-          // Reduce cost basis proportionally
           const ratio = ar.costBasis / ar.balance;
           ar.costBasis -= withdrawn * ratio;
           ar.costBasis = Math.max(0, ar.costBasis);
@@ -222,7 +259,6 @@ export function runSimulation(state: AppState): SimulationResult {
       }
     }
 
-    // Apply Roth conversions (if any)
     const rothConversions = withdrawalPlan.rothConversions;
 
     // Grow remaining balances
@@ -258,7 +294,7 @@ export function runSimulation(state: AppState): SimulationResult {
       ordinaryIncome: withdrawalPlan.ordinaryIncome,
       capitalGains: withdrawalPlan.capitalGains,
       taxableSSIncome: 0,
-      federalTax: withdrawalPlan.totalTax * 0.7, // rough split
+      federalTax: withdrawalPlan.totalTax * 0.7,
       stateTax: withdrawalPlan.totalTax * 0.3,
       totalTax: withdrawalPlan.totalTax,
       totalSpending: spending,
@@ -271,10 +307,11 @@ export function runSimulation(state: AppState): SimulationResult {
 
   return {
     years,
-    fireAge: primaryPerson.retirementAge,
+    fireAge: retirementAge,
     successfulRetirement: portfolioDepletionAge === null,
     totalTaxesPaid,
     portfolioDepletionAge,
+    totalNeededAtRetirement,
   };
 }
 
@@ -285,7 +322,6 @@ function calculateSpending(
   secondaryId: string | null,
   ages: Record<string, number>
 ): number {
-  // Find the applicable spending phase
   let baseSpending = 0;
   for (const phase of appState.spending.phases) {
     if (primaryAge >= phase.startAge && primaryAge <= phase.endAge) {
@@ -294,7 +330,6 @@ function calculateSpending(
     }
   }
 
-  // If no phase matches, use the last phase or 0
   if (baseSpending === 0 && appState.spending.phases.length > 0) {
     const lastPhase = appState.spending.phases[appState.spending.phases.length - 1];
     if (primaryAge > lastPhase.endAge) {
@@ -302,11 +337,9 @@ function calculateSpending(
     }
   }
 
-  // Add healthcare costs
   let healthcareCost = 0;
   const healthcare = appState.spending.healthcare;
 
-  // Primary person healthcare
   const primaryAge_ = ages[primaryId];
   if (primaryAge_ < 65) {
     healthcareCost += healthcare.pre65AnnualPerPerson;
@@ -314,7 +347,6 @@ function calculateSpending(
     healthcareCost += healthcare.post65AnnualPerPerson;
   }
 
-  // Secondary person healthcare
   if (secondaryId && ages[secondaryId] !== undefined) {
     const secondaryAge = ages[secondaryId];
     if (secondaryAge < 65) {

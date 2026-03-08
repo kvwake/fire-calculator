@@ -2,11 +2,10 @@ export interface Person {
   id: string;
   name: string;
   currentAge: number;
-  retirementAge: number;
   lifeExpectancy: number;
 }
 
-export type AccountType = 'traditional' | 'roth' | 'taxable' | 'hsa' | 'generic';
+export type AccountType = 'traditional' | 'roth' | 'taxable' | 'hsa' | 'cash' | 'generic';
 
 export interface Account {
   id: string;
@@ -15,6 +14,7 @@ export interface Account {
   owner: string; // person id
   balance: number;
   annualContribution: number;
+  contributionEndAge: number; // age of owner when contributions stop (default: retirement age)
   expectedReturn: number; // percentage, e.g. 7 for 7%
   costBasis: number; // for taxable accounts, dollar amount of cost basis
   seppEnabled: boolean; // for traditional accounts pre-59.5
@@ -30,7 +30,7 @@ export interface SocialSecurityConfig {
 export interface SpendingPhase {
   id: string;
   label: string;
-  startAge: number; // based on person 1 (or older person)
+  startAge: number; // based on primary person
   endAge: number;
   annualAmount: number; // post-tax spending in today's dollars
 }
@@ -51,6 +51,8 @@ export interface Settings {
   inflationRate: number; // percentage, e.g. 3 for 3%
   state: string; // state abbreviation
   filingStatus: FilingStatus;
+  retirementAge: number; // shared retirement age for the household
+  cashYearsOfExpenses: number; // years of expenses to keep in cash buffer
 }
 
 export interface AppState {
@@ -90,6 +92,7 @@ export interface SimulationResult {
   successfulRetirement: boolean;
   totalTaxesPaid: number;
   portfolioDepletionAge: number | null;
+  totalNeededAtRetirement: number;
 }
 
 export const ACCOUNT_TYPE_LABELS: Record<AccountType, string> = {
@@ -97,5 +100,6 @@ export const ACCOUNT_TYPE_LABELS: Record<AccountType, string> = {
   roth: 'Roth 401(k)/IRA',
   taxable: 'Taxable Brokerage',
   hsa: 'HSA',
+  cash: 'Cash / Bonds / HYSA',
   generic: 'Generic/Other',
 };

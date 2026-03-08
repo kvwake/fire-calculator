@@ -45,6 +45,7 @@ export default function Results() {
   }
 
   const primaryPerson = state.people[0];
+  const retirementAge = state.settings.retirementAge;
   const retirementYears = simulation.years.filter((y) => y.phase === 'retirement');
   const accumulationYears = simulation.years.filter((y) => y.phase === 'accumulation');
 
@@ -91,11 +92,17 @@ export default function Results() {
       <h2 className="text-xl font-semibold">Simulation Results</h2>
 
       {/* Summary Cards */}
-      <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+      <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-5">
         <SummaryCard
           label="Portfolio at Retirement"
           value={formatCurrency(retirementPortfolio)}
-          sublabel={`Age ${primaryPerson.retirementAge}`}
+          sublabel={`Age ${retirementAge}`}
+        />
+        <SummaryCard
+          label="Total Needed"
+          value={formatCurrency(simulation.totalNeededAtRetirement)}
+          sublabel="Portfolio value to sustain retirement"
+          className="border-blue-300 bg-blue-50"
         />
         <SummaryCard
           label="Peak Portfolio"
@@ -137,17 +144,17 @@ export default function Results() {
 
       {/* Portfolio Growth Chart */}
       <div className="rounded-lg border border-gray-200 bg-white p-6 shadow-sm">
-        <h3 className="mb-4 text-lg font-medium">Portfolio Over Time</h3>
+        <h3 className="mb-4 text-lg font-medium">Portfolio Over Time (by age)</h3>
         <ResponsiveContainer width="100%" height={400}>
           <AreaChart data={portfolioData}>
             <CartesianGrid strokeDasharray="3 3" />
-            <XAxis dataKey="age" label={{ value: 'Age', position: 'bottom' }} />
+            <XAxis dataKey="age" />
             <YAxis tickFormatter={formatCompact} />
             <Tooltip
               formatter={(value: number) => formatCurrency(value)}
               labelFormatter={(label) => `Age ${label}`}
             />
-            <Legend />
+            <Legend verticalAlign="top" height={36} />
             {state.accounts.map((account, i) => (
               <Area
                 key={account.id}
@@ -166,17 +173,17 @@ export default function Results() {
       {/* Income/Tax/Spending Chart */}
       {retirementYears.length > 0 && (
         <div className="rounded-lg border border-gray-200 bg-white p-6 shadow-sm">
-          <h3 className="mb-4 text-lg font-medium">Retirement Income & Spending</h3>
+          <h3 className="mb-4 text-lg font-medium">Retirement Income & Spending (by age)</h3>
           <ResponsiveContainer width="100%" height={350}>
             <BarChart data={incomeData}>
               <CartesianGrid strokeDasharray="3 3" />
-              <XAxis dataKey="age" label={{ value: 'Age', position: 'bottom' }} />
+              <XAxis dataKey="age" />
               <YAxis tickFormatter={formatCompact} />
               <Tooltip
                 formatter={(value: number) => formatCurrency(Math.abs(value))}
                 labelFormatter={(label) => `Age ${label}`}
               />
-              <Legend />
+              <Legend verticalAlign="top" height={36} />
               <Bar dataKey="Social Security" stackId="income" fill="#10b981" />
               <Bar dataKey="Withdrawals" stackId="income" fill="#3b82f6" />
               <Bar dataKey="Taxes" fill="#ef4444" />
@@ -285,7 +292,7 @@ export default function Results() {
             </thead>
             <tbody>
               {[
-                primaryPerson.retirementAge,
+                retirementAge,
                 60,
                 65,
                 67,

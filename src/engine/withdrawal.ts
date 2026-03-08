@@ -92,7 +92,26 @@ export function optimizeWithdrawals(
     return plan;
   }
 
-  // Step 4: Strategic withdrawal to fill low tax brackets
+  // Step 4: Use cash/bond accounts first (already liquid, no tax impact from selling)
+  if (remainingNeed > 0) {
+    const cashAccounts = accountStates.filter(
+      (as) =>
+        as.account.type === 'cash' &&
+        as.balance > (plan.withdrawals[as.account.id] || 0)
+    );
+
+    for (const as of cashAccounts) {
+      if (remainingNeed <= 0) break;
+      const available = as.balance - (plan.withdrawals[as.account.id] || 0);
+      const withdrawal = Math.min(remainingNeed, available);
+      plan.withdrawals[as.account.id] += withdrawal;
+      plan.totalGross += withdrawal;
+      remainingNeed -= withdrawal;
+      // Cash withdrawals are not taxable income (already taxed savings)
+    }
+  }
+
+  // Step 5: Strategic withdrawal to fill low tax brackets
   // Fill ordinary income up to the top of the 12% bracket with traditional/401k
   const standardDeduction = getStandardDeduction(filingStatus);
   const brackets = getFederalBrackets(filingStatus);

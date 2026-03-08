@@ -1,5 +1,6 @@
 import { useAppState } from '../context/AppContext';
 import { SpendingPhase } from '../types';
+import NumberInput from './NumberInput';
 
 function formatCurrency(val: number): string {
   return new Intl.NumberFormat('en-US', {
@@ -91,28 +92,22 @@ export default function SpendingSetup() {
               </div>
               <div>
                 <label className="block text-sm font-medium text-gray-700">Start Age</label>
-                <input
-                  type="number"
+                <NumberInput
+                  value={phase.startAge}
+                  onChange={(v) => updatePhase(phase.id, { startAge: v })}
+                  decimals={false}
                   min={18}
                   max={120}
-                  value={phase.startAge}
-                  onChange={(e) =>
-                    updatePhase(phase.id, { startAge: parseInt(e.target.value) || 18 })
-                  }
-                  className="mt-1 block w-full rounded-md border border-gray-300 px-3 py-2 shadow-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
                 />
               </div>
               <div>
                 <label className="block text-sm font-medium text-gray-700">End Age</label>
-                <input
-                  type="number"
+                <NumberInput
+                  value={phase.endAge}
+                  onChange={(v) => updatePhase(phase.id, { endAge: v })}
+                  decimals={false}
                   min={phase.startAge}
                   max={120}
-                  value={phase.endAge}
-                  onChange={(e) =>
-                    updatePhase(phase.id, { endAge: parseInt(e.target.value) || 95 })
-                  }
-                  className="mt-1 block w-full rounded-md border border-gray-300 px-3 py-2 shadow-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
                 />
               </div>
               <div className="flex items-end gap-2">
@@ -120,16 +115,10 @@ export default function SpendingSetup() {
                   <label className="block text-sm font-medium text-gray-700">
                     Annual Spend ($)
                   </label>
-                  <input
-                    type="number"
-                    min={0}
+                  <NumberInput
                     value={phase.annualAmount}
-                    onChange={(e) =>
-                      updatePhase(phase.id, {
-                        annualAmount: parseFloat(e.target.value) || 0,
-                      })
-                    }
-                    className="mt-1 block w-full rounded-md border border-gray-300 px-3 py-2 shadow-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
+                    onChange={(v) => updatePhase(phase.id, { annualAmount: v })}
+                    min={0}
                   />
                 </div>
                 {spending.phases.length > 1 && (
@@ -160,19 +149,14 @@ export default function SpendingSetup() {
             <label className="block text-sm font-medium text-gray-700">
               Pre-65 Healthcare (per person/year)
             </label>
-            <input
-              type="number"
-              min={0}
+            <NumberInput
               value={spending.healthcare.pre65AnnualPerPerson}
-              onChange={(e) =>
+              onChange={(v) =>
                 updateSpending({
-                  healthcare: {
-                    ...spending.healthcare,
-                    pre65AnnualPerPerson: parseFloat(e.target.value) || 0,
-                  },
+                  healthcare: { ...spending.healthcare, pre65AnnualPerPerson: v },
                 })
               }
-              className="mt-1 block w-full rounded-md border border-gray-300 px-3 py-2 shadow-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
+              min={0}
             />
             <p className="mt-1 text-xs text-gray-500">
               ACA marketplace premiums average $7,000-$15,000/year per person
@@ -183,19 +167,14 @@ export default function SpendingSetup() {
             <label className="block text-sm font-medium text-gray-700">
               Post-65 Healthcare (per person/year)
             </label>
-            <input
-              type="number"
-              min={0}
+            <NumberInput
               value={spending.healthcare.post65AnnualPerPerson}
-              onChange={(e) =>
+              onChange={(v) =>
                 updateSpending({
-                  healthcare: {
-                    ...spending.healthcare,
-                    post65AnnualPerPerson: parseFloat(e.target.value) || 0,
-                  },
+                  healthcare: { ...spending.healthcare, post65AnnualPerPerson: v },
                 })
               }
-              className="mt-1 block w-full rounded-md border border-gray-300 px-3 py-2 shadow-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
+              min={0}
             />
             <p className="mt-1 text-xs text-gray-500">
               Medicare Part B + supplemental typically $2,000-$5,000/year

@@ -2,6 +2,7 @@ import { useAppState } from '../context/AppContext';
 import { getAllStates } from '../data/stateTax';
 import { FilingStatus } from '../types';
 import { useRef } from 'react';
+import NumberInput from './NumberInput';
 
 const states = getAllStates();
 
@@ -41,7 +42,6 @@ export default function SettingsPanel() {
     };
     reader.readAsText(file);
 
-    // Reset input
     if (fileInputRef.current) {
       fileInputRef.current.value = '';
     }
@@ -52,6 +52,22 @@ export default function SettingsPanel() {
       <h2 className="text-xl font-semibold">Settings</h2>
 
       <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
+        <div className="rounded-lg border border-gray-200 bg-white p-4 shadow-sm">
+          <label className="block text-sm font-medium text-gray-700">
+            Retirement Age (household)
+          </label>
+          <NumberInput
+            value={state.settings.retirementAge}
+            onChange={(v) => updateSettings({ retirementAge: v })}
+            decimals={false}
+            min={30}
+            max={80}
+          />
+          <p className="mt-1 text-xs text-gray-500">
+            The age at which the household retires. Both people stop working at this time.
+          </p>
+        </div>
+
         <div className="rounded-lg border border-gray-200 bg-white p-4 shadow-sm">
           <label className="block text-sm font-medium text-gray-700">State of Residence</label>
           <select
@@ -83,19 +99,32 @@ export default function SettingsPanel() {
 
         <div className="rounded-lg border border-gray-200 bg-white p-4 shadow-sm">
           <label className="block text-sm font-medium text-gray-700">Inflation Rate (%)</label>
-          <input
-            type="number"
+          <NumberInput
+            value={state.settings.inflationRate}
+            onChange={(v) => updateSettings({ inflationRate: v })}
             min={0}
             max={15}
             step={0.1}
-            value={state.settings.inflationRate}
-            onChange={(e) =>
-              updateSettings({ inflationRate: parseFloat(e.target.value) || 3 })
-            }
-            className="mt-1 block w-full rounded-md border border-gray-300 px-3 py-2 shadow-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
           />
           <p className="mt-1 text-xs text-gray-500">
             Historical average: ~3%. Used to convert nominal returns to real returns.
+          </p>
+        </div>
+
+        <div className="rounded-lg border border-gray-200 bg-white p-4 shadow-sm">
+          <label className="block text-sm font-medium text-gray-700">
+            Cash Buffer (years of expenses)
+          </label>
+          <NumberInput
+            value={state.settings.cashYearsOfExpenses}
+            onChange={(v) => updateSettings({ cashYearsOfExpenses: v })}
+            decimals={false}
+            min={0}
+            max={10}
+          />
+          <p className="mt-1 text-xs text-gray-500">
+            Years of spending to keep in cash/bonds at retirement to protect against
+            sequence-of-returns risk. Funded from other accounts at retirement.
           </p>
         </div>
       </div>
