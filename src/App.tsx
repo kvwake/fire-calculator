@@ -7,6 +7,7 @@ import SpendingSetup from './components/SpendingSetup';
 import SettingsPanel from './components/SettingsPanel';
 import Results from './components/Results';
 import Methodology from './components/Methodology';
+import ErrorBoundary from './components/ErrorBoundary';
 
 const tabs = [
   { id: 'people', label: 'People' },
@@ -91,7 +92,7 @@ export default function App() {
           )}
           {activeTab === 'spending' && <SpendingSetup />}
           {activeTab === 'settings' && <SettingsPanel />}
-          {activeTab === 'results' && <Results />}
+          {activeTab === 'results' && <ErrorBoundary><Results /></ErrorBoundary>}
           {activeTab === 'methodology' && <Methodology />}
         </main>
 

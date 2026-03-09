@@ -67,8 +67,8 @@ export function calculateTotalTax(situation: TaxSituation): TaxResult {
     situation.capitalGains,
     situation.filingStatus
   );
-  const marginalOrdinaryRate =
-    (marginalCheck.incomeTax - federal.incomeTax) / 1000;
+  const marginalDiff = marginalCheck.incomeTax - federal.incomeTax;
+  const marginalOrdinaryRate = isFinite(marginalDiff) ? marginalDiff / 1000 : 0;
 
   return {
     federalIncomeTax: federal.incomeTax,

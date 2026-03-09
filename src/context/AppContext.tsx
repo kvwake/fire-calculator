@@ -195,7 +195,11 @@ export function AppProvider({ children }: { children: ReactNode }) {
 
   // Auto-save to localStorage
   useEffect(() => {
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
+    try {
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
+    } catch {
+      // localStorage full or unavailable (private browsing) — data won't persist
+    }
   }, [state]);
 
   const exportData = () => JSON.stringify(state, null, 2);
@@ -203,8 +207,39 @@ export function AppProvider({ children }: { children: ReactNode }) {
   const importData = (json: string): boolean => {
     try {
       const parsed = JSON.parse(json);
-      dispatch({ type: 'SET_STATE', payload: { ...defaultState, ...parsed } });
-      return true;
+      // Basic schema validation: ensure critical fields are arrays/objects
+      if (parsed && typeof parsed === 'object' &&
+          (!parsed.people || Array.isArray(parsed.people)) &&
+          (!parsed.accounts || Array.isArray(parsed.accounts))) {
+        // Ensure accounts have required numeric fields
+        const accounts = (parsed.accounts ?? []).map((a: Record<string, unknown>) => ({
+          dividendYield: 0,
+          ...a,
+          balance: typeof a.balance === 'number' ? a.balance : 0,
+          expectedReturn: typeof a.expectedReturn === 'number' ? a.expectedReturn : 7,
+        }));
+        dispatch({
+          type: 'SET_STATE',
+          payload: {
+            ...defaultState,
+            ...parsed,
+            accounts,
+            settings: {
+              ...defaultState.settings,
+              ...parsed.settings,
+              glidePath: { ...defaultState.settings.glidePath, ...parsed.settings?.glidePath },
+            },
+            spending: {
+              ...defaultState.spending,
+              ...parsed.spending,
+              healthcare: { ...defaultState.spending.healthcare, ...parsed.spending?.healthcare },
+              budgetItems: Array.isArray(parsed.spending?.budgetItems) ? parsed.spending.budgetItems : [],
+            },
+          },
+        });
+        return true;
+      }
+      return false;
     } catch {
       return false;
     }
