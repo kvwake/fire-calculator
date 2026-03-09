@@ -1,6 +1,11 @@
 import { AppState, SimulationResult } from '../types';
-import { runSimulation } from './simulation';
+import { runSimulation, ReturnOverrides } from './simulation';
 import { HISTORICAL_REAL_RETURNS, HISTORICAL_MEAN_REAL_RETURN, HISTORICAL_STDDEV_REAL_RETURN } from '../data/historicalReturns';
+
+// Bond return parameters (US aggregate bonds, real terms)
+const BOND_REAL_MEAN = 0.02;     // ~2% real mean return
+const BOND_REAL_STDDEV = 0.06;   // ~6% standard deviation
+const EQUITY_BOND_CORRELATION = -0.2; // slight negative correlation
 
 export interface MonteCarloResult {
   successRate: number; // 0-1
@@ -117,14 +122,21 @@ export function runMonteCarlo(
   const randomFn = seed !== undefined ? seededNormal : randomNormal;
 
   for (let trial = 0; trial < trials; trial++) {
-    // Generate random real returns for each year
-    const yearReturns: number[] = [];
+    // Generate correlated equity and bond return streams
+    const equityReturns: number[] = [];
+    const bondReturns: number[] = [];
     for (let y = 0; y < numYears; y++) {
-      yearReturns.push(randomFn(mean, stddev));
+      // Generate two independent standard normals, then correlate
+      const z1 = randomFn(0, 1);
+      const z2Raw = randomFn(0, 1);
+      const z2 = EQUITY_BOND_CORRELATION * z1 +
+        Math.sqrt(1 - EQUITY_BOND_CORRELATION * EQUITY_BOND_CORRELATION) * z2Raw;
+      equityReturns.push(mean + stddev * z1);
+      bondReturns.push(BOND_REAL_MEAN + BOND_REAL_STDDEV * z2);
     }
 
-    // Run simulation with return overrides
-    const result = runSimulation(state, yearReturns);
+    // Run simulation with per-asset-class return overrides
+    const result = runSimulation(state, { equity: equityReturns, bonds: bondReturns });
 
     // Extract portfolio path
     const portfolioPath = result.years.map(y => y.totalPortfolioValue);
@@ -213,11 +225,13 @@ export function runHistoricalBacktest(state: AppState): HistoricalResult {
 
   // Test every possible starting year where we have enough data
   for (let startIdx = 0; startIdx <= returns.length - numYears; startIdx++) {
-    const yearReturns = returns
+    const equityReturns = returns
       .slice(startIdx, startIdx + numYears)
       .map(r => r.realReturn);
 
-    const result = runSimulation(state, yearReturns);
+    // Historical backtest: equity uses actual S&P 500 data,
+    // bonds use their configured return (no bond override)
+    const result = runSimulation(state, { equity: equityReturns });
 
     const portfolioPath = result.years.map(y => y.totalPortfolioValue);
 

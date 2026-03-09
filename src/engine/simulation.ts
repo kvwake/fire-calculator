@@ -20,13 +20,29 @@ interface AccountRuntime {
 }
 
 /**
+ * Per-asset-class return overrides for Monte Carlo / historical backtesting.
+ * equity: real returns per year for equity-heavy accounts
+ * bonds: real returns per year for bond-heavy accounts (optional; uses configured return if omitted)
+ *
+ * Each account's return is blended between equity and bond streams based on its
+ * configured expectedReturn (high → equity-weighted, low → bond-weighted).
+ */
+export interface ReturnOverrides {
+  equity: number[];
+  bonds?: number[];
+}
+
+// Anchor points for equity weight calculation (nominal rates)
+const EQUITY_NOMINAL_RATE = 0.10; // S&P 500 historical average
+const BOND_NOMINAL_RATE = 0.045;  // Aggregate bond historical average
+
+/**
  * Run the deterministic retirement simulation.
  * @param state - App state with all user inputs
- * @param returnOverrides - Optional array of real returns per year (for Monte Carlo / historical).
- *   When provided, equity-like accounts use these returns instead of their configured expectedReturn.
- *   Cash/bond accounts still use their own configured return.
+ * @param returnOverrides - Optional per-asset-class real returns (for Monte Carlo / historical).
+ *   Cash accounts always use their configured return.
  */
-export function runSimulation(state: AppState, returnOverrides?: number[]): SimulationResult {
+export function runSimulation(state: AppState, returnOverrides?: ReturnOverrides): SimulationResult {
   if (state.people.length === 0) {
     return {
       years: [],
@@ -81,13 +97,24 @@ export function runSimulation(state: AppState, returnOverrides?: number[]): Simu
   let inAusterity = false;
   const austerityReduction = (state.settings.austerityReduction ?? 0) / 100;
 
-  // Helper: get real return for an account for a given year
+  // Helper: get real return for an account for a given year.
+  // Blends equity and bond return streams based on the account's expected return.
   function getRealReturn(ar: AccountRuntime, yearIdx: number): number {
-    if (returnOverrides && ar.account.type !== 'cash') {
-      // Use the override return for equity-like accounts
-      return returnOverrides[yearIdx] ?? (ar.account.expectedReturn / 100 - inflationRate);
+    const configuredReal = ar.account.expectedReturn / 100 - inflationRate;
+    if (!returnOverrides || ar.account.type === 'cash') {
+      return configuredReal;
     }
-    return ar.account.expectedReturn / 100 - inflationRate;
+    // Equity weight: accounts with high expected returns are equity-like,
+    // accounts with low expected returns are bond-like.
+    const nominal = ar.account.expectedReturn / 100;
+    const equityWeight = Math.max(0, Math.min(1,
+      (nominal - BOND_NOMINAL_RATE) / (EQUITY_NOMINAL_RATE - BOND_NOMINAL_RATE)
+    ));
+    const equityReturn = returnOverrides.equity[yearIdx] ?? configuredReal;
+    const bondReturn = returnOverrides.bonds
+      ? (returnOverrides.bonds[yearIdx] ?? configuredReal)
+      : configuredReal;
+    return equityWeight * equityReturn + (1 - equityWeight) * bondReturn;
   }
 
   for (let age = startAge; age <= maxAge; age++) {

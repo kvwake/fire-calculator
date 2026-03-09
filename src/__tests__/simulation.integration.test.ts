@@ -366,11 +366,11 @@ describe('Simulation Integration Tests', () => {
       });
 
       // Override: 0% return every year (flat market)
-      const flatReturns = Array(11).fill(0);
+      const flatReturns = { equity: Array(11).fill(0) };
       const flatResult = runSimulation(state, flatReturns);
 
       // Override: 20% return every year (bull market)
-      const bullReturns = Array(11).fill(0.20);
+      const bullReturns = { equity: Array(11).fill(0.20) };
       const bullResult = runSimulation(state, bullReturns);
 
       // Bull market should end with more money
@@ -388,17 +388,17 @@ describe('Simulation Integration Tests', () => {
         retirementYear: CURRENT_YEAR + 5, // 5 years of accumulation
         accounts: [
           makeAccount({ id: 'cash', type: 'cash', balance: 100000, expectedReturn: 2 }),
-          makeAccount({ id: 'roth', type: 'roth', balance: 100000, expectedReturn: 7 }),
+          makeAccount({ id: 'roth', type: 'roth', balance: 100000, expectedReturn: 10 }),
         ],
         settings: { inflationRate: 0 },
       });
 
-      // Override: 50% return for non-cash, cash should still use 2%
-      const overrides = Array(25).fill(0.50);
+      // Override: 50% equity return, 10% bond return
+      const overrides = { equity: Array(25).fill(0.50), bonds: Array(25).fill(0.10) };
       const result = runSimulation(state, overrides);
       const accumYears = result.years.filter(y => y.phase === 'accumulation');
 
-      // Cash growth should be 2% each year, not 50%
+      // Cash growth should be 2% each year (ignores overrides)
       for (const y of accumYears) {
         const startBal = y.startingBalances['cash'];
         const growth = y.growth['cash'];
@@ -407,7 +407,7 @@ describe('Simulation Integration Tests', () => {
         }
       }
 
-      // Roth should use overrides (50%)
+      // Roth at 10% nominal = 100% equity weight, should get 50% equity return
       for (const y of accumYears) {
         const startBal = y.startingBalances['roth'];
         const growth = y.growth['roth'];

@@ -242,10 +242,13 @@ export default function Methodology() {
           These are nominal rates — inflation is subtracted automatically.
         </p>
         <p className="mt-2">
-          <strong>Monte Carlo simulation</strong> randomizes annual market returns using historical
-          S&P 500 real return statistics (mean ~7% real, ~17% standard deviation) to stress-test
-          your plan across thousands of possible market scenarios. Cash and bond accounts keep their
-          fixed configured returns regardless of market conditions.
+          <strong>Monte Carlo simulation</strong> generates separate equity and bond return streams
+          with realistic correlation (~−0.2). Equity returns use historical S&P 500 statistics
+          (mean ~7% real, ~17% standard deviation). Bond returns use aggregate bond statistics
+          (mean ~2% real, ~6% standard deviation). Each account's return is blended between
+          the two streams based on its configured expected return — high-return accounts get
+          more equity exposure, low-return accounts get more bond exposure. Cash accounts
+          keep their fixed configured return.
         </p>
         <p className="mt-2">
           <strong>Historical backtesting</strong> uses every rolling period from actual S&P 500 data
