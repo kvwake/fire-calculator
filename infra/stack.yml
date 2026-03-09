@@ -1,0 +1,130 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Description: FIRE Calculator - S3 static site with GitHub Actions OIDC deployment
+
+Parameters:
+  BucketName:
+    Type: String
+    Description: S3 bucket name for the static site
+  GitHubRepo:
+    Type: String
+    Default: kvwake/fire-calculator
+    Description: GitHub org/repo allowed to deploy
+  GitHubOIDCProviderArn:
+    Type: String
+    Description: ARN of existing GitHub OIDC provider in this account
+
+Resources:
+  # --- S3 Bucket ---
+  SiteBucket:
+    Type: AWS::S3::Bucket
+    Properties:
+      BucketName: !Ref BucketName
+      PublicAccessBlockConfiguration:
+        BlockPublicAcls: true
+        BlockPublicPolicy: true
+        IgnorePublicAcls: true
+        RestrictPublicBuckets: true
+      WebsiteConfiguration:
+        IndexDocument: index.html
+        ErrorDocument: index.html
+
+  # --- CloudFront ---
+  OriginAccessControl:
+    Type: AWS::CloudFront::OriginAccessControl
+    Properties:
+      OriginAccessControlConfig:
+        Name: !Sub ${BucketName}-oac
+        OriginAccessControlOriginType: s3
+        SigningBehavior: always
+        SigningProtocol: sigv4
+
+  Distribution:
+    Type: AWS::CloudFront::Distribution
+    Properties:
+      DistributionConfig:
+        Enabled: true
+        DefaultRootObject: index.html
+        HttpVersion: http2and3
+        Origins:
+          - Id: S3Origin
+            DomainName: !GetAtt SiteBucket.RegionalDomainName
+            OriginAccessControlId: !GetAtt OriginAccessControl.Id
+            S3OriginConfig:
+              OriginAccessIdentity: ''
+        DefaultCacheBehavior:
+          TargetOriginId: S3Origin
+          ViewerProtocolPolicy: redirect-to-https
+          CachePolicyId: 658327ea-f89d-4fab-a63d-7e88639e58f6 # CachingOptimized
+          Compress: true
+        CustomErrorResponses:
+          - ErrorCode: 403
+            ResponseCode: 200
+            ResponsePagePath: /index.html
+          - ErrorCode: 404
+            ResponseCode: 200
+            ResponsePagePath: /index.html
+
+  BucketPolicy:
+    Type: AWS::S3::BucketPolicy
+    Properties:
+      Bucket: !Ref SiteBucket
+      PolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+          - Sid: AllowCloudFrontServicePrincipal
+            Effect: Allow
+            Principal:
+              Service: cloudfront.amazonaws.com
+            Action: s3:GetObject
+            Resource: !Sub arn:aws:s3:::${BucketName}/*
+            Condition:
+              StringEquals:
+                AWS:SourceArn: !Sub arn:aws:cloudfront::${AWS::AccountId}:distribution/${Distribution}
+
+  # --- Deploy Role ---
+  DeployRole:
+    Type: AWS::IAM::Role
+    Properties:
+      RoleName: !Sub ${BucketName}-deploy
+      AssumeRolePolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+          - Effect: Allow
+            Principal:
+              Federated: !Ref GitHubOIDCProviderArn
+            Action: sts:AssumeRoleWithWebIdentity
+            Condition:
+              StringEquals:
+                token.actions.githubusercontent.com:aud: sts.amazonaws.com
+              StringLike:
+                token.actions.githubusercontent.com:sub: !Sub repo:${GitHubRepo}:ref:refs/heads/main
+      Policies:
+        - PolicyName: DeployToS3
+          PolicyDocument:
+            Version: '2012-10-17'
+            Statement:
+              - Effect: Allow
+                Action:
+                  - s3:PutObject
+                  - s3:DeleteObject
+                  - s3:ListBucket
+                Resource:
+                  - !Sub arn:aws:s3:::${BucketName}
+                  - !Sub arn:aws:s3:::${BucketName}/*
+              - Effect: Allow
+                Action: cloudfront:CreateInvalidation
+                Resource: !Sub arn:aws:cloudfront::${AWS::AccountId}:distribution/${Distribution}
+
+Outputs:
+  DeployRoleArn:
+    Description: Set this as AWS_ROLE_ARN secret in GitHub
+    Value: !GetAtt DeployRole.Arn
+  BucketName:
+    Description: Set this as S3_BUCKET secret in GitHub
+    Value: !Ref SiteBucket
+  CloudFrontDistributionId:
+    Description: Set this as CLOUDFRONT_DISTRIBUTION_ID secret in GitHub
+    Value: !Ref Distribution
+  CloudFrontURL:
+    Description: Your site URL
+    Value: !Sub https://${Distribution.DomainName}
