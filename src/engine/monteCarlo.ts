@@ -1,6 +1,6 @@
 import { AppState, SimulationResult } from '../types';
 import { runSimulation, ReturnOverrides } from './simulation';
-import { HISTORICAL_REAL_RETURNS, HISTORICAL_MEAN_REAL_RETURN, HISTORICAL_STDDEV_REAL_RETURN } from '../data/historicalReturns';
+import { HISTORICAL_REAL_RETURNS, HISTORICAL_BOND_REAL_RETURNS, HISTORICAL_MEAN_REAL_RETURN, HISTORICAL_STDDEV_REAL_RETURN } from '../data/historicalReturns';
 
 // Bond return parameters (US aggregate bonds, real terms)
 const BOND_REAL_MEAN = 0.02;     // ~2% real mean return
@@ -229,9 +229,12 @@ export function runHistoricalBacktest(state: AppState): HistoricalResult {
       .slice(startIdx, startIdx + numYears)
       .map(r => r.realReturn);
 
-    // Historical backtest: equity uses actual S&P 500 data,
-    // bonds use their configured return (no bond override)
-    const result = runSimulation(state, { equity: equityReturns });
+    const bondReturns = HISTORICAL_BOND_REAL_RETURNS
+      .slice(startIdx, startIdx + numYears)
+      .map(r => r.realReturn);
+
+    // Historical backtest: both equity and bond use actual historical data
+    const result = runSimulation(state, { equity: equityReturns, bonds: bondReturns });
 
     const portfolioPath = result.years.map(y => y.totalPortfolioValue);
 

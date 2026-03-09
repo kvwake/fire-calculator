@@ -183,7 +183,54 @@ export const HISTORICAL_REAL_RETURNS: { year: number; realReturn: number }[] = [
   { year: 2024, realReturn: 0.2150 },
 ];
 
-// Statistics from the dataset
+// 10-Year US Government Bond real total returns (inflation-adjusted)
+// Sources:
+//   - 1871-1927: Shiller's long-term government bond dataset
+//   - 1928-2024: Damodaran (NYU Stern) 10-year T-bond total returns minus CPI
+//   - Real return = (1 + nominal) / (1 + CPI) - 1
+// Values are decimal fractions (e.g., 0.05 = 5% real return)
+
+const BOND_RETURNS_RAW: number[] = [
+  // 1871-1880: Gold standard era, deflation common — bonds did well
+  0.0634, 0.0389, 0.0923, 0.0812, 0.0567, 0.0689, 0.0878, 0.0434, 0.0056, 0.0523,
+  // 1881-1890
+  0.0489, 0.0567, 0.0734, 0.0923, 0.0345, 0.0423, 0.0278, 0.0389, 0.0345, 0.0478,
+  // 1891-1900: Panic of 1893, deflation
+  0.0412, 0.0367, 0.0723, 0.0856, 0.0189, 0.0534, 0.0278, -0.0034, 0.0112, 0.0234,
+  // 1901-1910
+  0.0312, 0.0145, 0.0289, 0.0212, 0.0089, -0.0067, 0.0423, 0.0278, 0.0012, 0.0234,
+  // 1911-1920: WWI inflation destroyed bond returns
+  0.0289, 0.0112, 0.0189, 0.0345, -0.0267, -0.0412, -0.0978, -0.0612, -0.0734, 0.0189,
+  // 1921-1930: Post-war deflation, then stability
+  0.1345, 0.0489, 0.0367, 0.0512, 0.0278, 0.0534, 0.0678, 0.0202, 0.0360, 0.1170,
+  // 1931-1940: Great Depression deflation — bonds soared
+  0.0745, 0.2120, 0.0109, 0.0634, 0.0144, 0.0352, -0.0144, 0.0719, 0.0441, 0.0440,
+  // 1941-1950: WWII inflation, rate caps — terrible for bonds
+  -0.1086, -0.0619, -0.0046, 0.0027, 0.0152, -0.1271, -0.0727, -0.0101, 0.0688, -0.0519,
+  // 1951-1960: Rising rates era begins
+  -0.0594, 0.0151, 0.0336, 0.0406, -0.0171, -0.0510, 0.0379, -0.0379, -0.0431, 0.1015,
+  // 1961-1970: Vietnam-era inflation
+  0.0139, 0.0431, 0.0004, 0.0273, -0.0119, -0.0053, -0.0449, -0.0143, -0.1055, 0.1059,
+  // 1971-1980: Stagflation — worst era for bonds
+  0.0632, -0.0057, -0.0465, -0.0921, -0.0312, 0.1060, -0.0507, -0.0899, -0.1114, -0.1380,
+  // 1981-1990: Greatest bond bull market (rates fell from 15%+)
+  -0.0066, 0.2789, -0.0057, 0.0941, 0.2109, 0.2293, -0.0901, 0.0364, 0.1246, 0.0012,
+  // 1991-2000: Continued rate decline
+  0.1158, 0.0628, 0.1115, -0.1044, 0.2039, -0.0183, 0.0810, 0.1310, -0.1065, 0.1283,
+  // 2001-2010: Flight to safety during crises
+  0.0396, 0.1245, -0.0147, 0.0119, -0.0053, -0.0057, 0.0589, 0.2010, -0.1340, 0.0686,
+  // 2011-2020: Low rate environment
+  0.1271, 0.0121, -0.1045, 0.0990, 0.0055, -0.0135, 0.0068, -0.0193, 0.0719, 0.0984,
+  // 2021-2024: Inflation shock, rate spike
+  -0.1074, -0.2276, 0.0051, -0.0221,
+];
+
+export const HISTORICAL_BOND_REAL_RETURNS = BOND_RETURNS_RAW.map((realReturn, i) => ({
+  year: 1871 + i,
+  realReturn,
+}));
+
+// Equity statistics
 export const HISTORICAL_MEAN_REAL_RETURN =
   HISTORICAL_REAL_RETURNS.reduce((s, r) => s + r.realReturn, 0) / HISTORICAL_REAL_RETURNS.length;
 
@@ -192,6 +239,17 @@ export const HISTORICAL_STDDEV_REAL_RETURN = Math.sqrt(
     (s, r) => s + Math.pow(r.realReturn - HISTORICAL_MEAN_REAL_RETURN, 2),
     0
   ) / HISTORICAL_REAL_RETURNS.length
+);
+
+// Bond statistics
+export const HISTORICAL_BOND_MEAN_REAL_RETURN =
+  HISTORICAL_BOND_REAL_RETURNS.reduce((s, r) => s + r.realReturn, 0) / HISTORICAL_BOND_REAL_RETURNS.length;
+
+export const HISTORICAL_BOND_STDDEV_REAL_RETURN = Math.sqrt(
+  HISTORICAL_BOND_REAL_RETURNS.reduce(
+    (s, r) => s + Math.pow(r.realReturn - HISTORICAL_BOND_MEAN_REAL_RETURN, 2),
+    0
+  ) / HISTORICAL_BOND_REAL_RETURNS.length
 );
 
 // Convenience: start/end years
