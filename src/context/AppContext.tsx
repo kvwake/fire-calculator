@@ -38,6 +38,7 @@ const defaultState: AppState = {
     withdrawalHardLimit: null,
     cashFloorYears: 1,
     austerityReduction: null,
+    glidePath: { enabled: false, safeYearsStart: 7, safeYearsEnd: 3 },
   },
 };
 
@@ -153,10 +154,19 @@ function loadState(): AppState {
     if (saved) {
       const parsed = JSON.parse(saved);
       // Merge with defaults to handle new fields
+      const accounts = (parsed.accounts ?? []).map((a: Record<string, unknown>) => ({
+        dividendYield: 0,
+        ...a,
+      }));
       return {
         ...defaultState,
         ...parsed,
-        settings: { ...defaultState.settings, ...parsed.settings },
+        accounts,
+        settings: {
+          ...defaultState.settings,
+          ...parsed.settings,
+          glidePath: { ...defaultState.settings.glidePath, ...parsed.settings?.glidePath },
+        },
         spending: {
           ...defaultState.spending,
           ...parsed.spending,

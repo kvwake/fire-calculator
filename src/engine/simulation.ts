@@ -99,23 +99,34 @@ export function runSimulation(state: AppState, returnOverrides?: ReturnOverrides
 
   // Helper: get real return for an account for a given year.
   // Blends equity and bond return streams based on the account's expected return.
-  function getRealReturn(ar: AccountRuntime, yearIdx: number): number {
+  // When glidePathEquityPct is provided, it overrides the account-level equity weight
+  // to enforce a portfolio-wide asset allocation.
+  function getRealReturn(ar: AccountRuntime, yearIdx: number, glidePathEquityPct?: number): number {
     const configuredReal = ar.account.expectedReturn / 100 - inflationRate;
     if (!returnOverrides || ar.account.type === 'cash') {
       return configuredReal;
     }
-    // Equity weight: accounts with high expected returns are equity-like,
-    // accounts with low expected returns are bond-like.
-    const nominal = ar.account.expectedReturn / 100;
-    const equityWeight = Math.max(0, Math.min(1,
-      (nominal - BOND_NOMINAL_RATE) / (EQUITY_NOMINAL_RATE - BOND_NOMINAL_RATE)
-    ));
+    // Equity weight: either from glide path or from account's expected return
+    let equityWeight: number;
+    if (glidePathEquityPct !== undefined) {
+      equityWeight = glidePathEquityPct;
+    } else {
+      const nominal = ar.account.expectedReturn / 100;
+      equityWeight = Math.max(0, Math.min(1,
+        (nominal - BOND_NOMINAL_RATE) / (EQUITY_NOMINAL_RATE - BOND_NOMINAL_RATE)
+      ));
+    }
     const equityReturn = returnOverrides.equity[yearIdx] ?? configuredReal;
     const bondReturn = returnOverrides.bonds
       ? (returnOverrides.bonds[yearIdx] ?? configuredReal)
       : configuredReal;
     return equityWeight * equityReturn + (1 - equityWeight) * bondReturn;
   }
+
+  // Glide path: calculate target equity % based on retirement progress
+  const glidePath = state.settings.glidePath;
+  const retirementAge = primaryPerson.currentAge + (retirementYear - CURRENT_YEAR);
+  const retirementDuration = maxAge - retirementAge;
 
   for (let age = startAge; age <= maxAge; age++) {
     const year = CURRENT_YEAR + (age - startAge);
@@ -218,6 +229,7 @@ export function runSimulation(state: AppState, returnOverrides?: ReturnOverrides
         deficit: 0,
         bufferBorrowed: 0,
         cashBalance: accountRuntimes.filter(ar => ar.account.type === 'cash').reduce((s, ar) => s + ar.balance, 0),
+        dividendIncome: 0,
         cashBelowFloor: false,
         inAusterity: false,
         totalPortfolioValue: totalPortfolio,
@@ -435,6 +447,29 @@ export function runSimulation(state: AppState, returnOverrides?: ReturnOverrides
     // Pension income is already accounted for in cashAfterSpendingAndSS
     const effectiveNeed = (hasCashAccounts ? shortfall + totalSSIncome + totalPensionIncome : spending) + hsaContribAmount;
 
+    // --- Dividend Income from Taxable Accounts ---
+    // Dividends are generated annually and count as qualified dividend income (LTCG rates).
+    // They are added to MAGI and can push you over the ACA cliff even without withdrawals.
+    // Dividends are reinvested (increase balance and cost basis).
+    let dividendIncome = 0;
+    for (const ar of accountRuntimes) {
+      if (ar.account.type === 'taxable' && (ar.account.dividendYield ?? 0) > 0) {
+        const divYield = ar.account.dividendYield / 100;
+        const dividends = ar.balance * divYield;
+        dividendIncome += dividends;
+        // Dividends are reinvested — increase both balance and cost basis
+        ar.balance += dividends;
+        ar.costBasis += dividends;
+      }
+    }
+    if (dividendIncome > 0) {
+      annotations.push(
+        `Dividend income: $${Math.round(dividendIncome).toLocaleString()} from taxable accounts. ` +
+        `Dividends are taxed as qualified dividends (capital gains rates) and count toward MAGI ` +
+        `even though you didn't sell anything. This is "phantom income" that can affect ACA subsidies and IRMAA.`
+      );
+    }
+
     // Build ACA context for cliff-aware optimization
     const acaAges: number[] = [];
     if (age < 65) acaAges.push(age);
@@ -453,6 +488,7 @@ export function runSimulation(state: AppState, returnOverrides?: ReturnOverrides
         estimatedSubsidyAtCliff: nearCliffResult.annualSubsidy,
         ssIncome: totalSSIncome,
         hsaContribDeduction: hsaContribAmount,
+        dividendIncome, // Dividend income uses MAGI headroom
       };
     }
 
@@ -868,8 +904,30 @@ export function runSimulation(state: AppState, returnOverrides?: ReturnOverrides
     // Grow remaining balances
     const yearGrowth: Record<string, number> = {};
     const yearIdx = age - startAge;
+
+    // Glide path: calculate target equity % for this year of retirement
+    let glideEquityPct: number | undefined;
+    if (glidePath?.enabled && returnOverrides && retirementDuration > 0) {
+      const yearsIntoRetirement = age - retirementAge;
+      const progress = Math.max(0, Math.min(1, yearsIntoRetirement / retirementDuration));
+      const safeYears = glidePath.safeYearsStart +
+        (glidePath.safeYearsEnd - glidePath.safeYearsStart) * progress;
+      const totalNonCash = accountRuntimes
+        .filter(ar => ar.account.type !== 'cash')
+        .reduce((s, ar) => s + ar.balance, 0);
+      const safeTarget = safeYears * spending;
+      // Cash already provides some "safe years" — subtract it from target
+      const cashBal = accountRuntimes
+        .filter(ar => ar.account.type === 'cash')
+        .reduce((s, ar) => s + ar.balance, 0);
+      const bondTarget = Math.max(0, safeTarget - cashBal);
+      glideEquityPct = totalNonCash > 0
+        ? Math.max(0, Math.min(1, 1 - bondTarget / totalNonCash))
+        : 0;
+    }
+
     for (const ar of accountRuntimes) {
-      const realReturn = getRealReturn(ar, yearIdx);
+      const realReturn = getRealReturn(ar, yearIdx, glideEquityPct);
       const growth = ar.balance * realReturn;
       ar.balance += growth;
       ar.balance = Math.max(0, ar.balance);
@@ -914,7 +972,7 @@ export function runSimulation(state: AppState, returnOverrides?: ReturnOverrides
     // Uses MAGI from 2 years prior. Applies to people age 65+.
     let irmaaSurcharge = 0;
     const yearMAGI = withdrawalPlan.ordinaryIncome + totalConversionAmount +
-      withdrawalPlan.capitalGains + totalSSIncome;
+      withdrawalPlan.capitalGains + totalSSIncome + dividendIncome;
 
     // Count Medicare-eligible people (age 65+)
     let medicareCount = 0;
@@ -1020,6 +1078,7 @@ export function runSimulation(state: AppState, returnOverrides?: ReturnOverrides
       deficit,
       bufferBorrowed,
       cashBalance,
+      dividendIncome,
       cashBelowFloor,
       inAusterity,
       totalPortfolioValue: totalPortfolio,
@@ -1027,8 +1086,6 @@ export function runSimulation(state: AppState, returnOverrides?: ReturnOverrides
       annotations,
     });
   }
-
-  const retirementAge = primaryPerson.currentAge + (retirementYear - CURRENT_YEAR);
 
   return {
     years,

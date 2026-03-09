@@ -565,6 +565,7 @@ export interface ACAContext {
   estimatedSubsidyAtCliff: number; // annual subsidy value if we stay just under
   ssIncome: number;            // full SS income (counts toward ACA MAGI)
   hsaContribDeduction: number; // HSA contributions that reduce MAGI
+  dividendIncome: number;      // taxable dividend income (counts toward MAGI)
 }
 
 // ACA-aware withdrawal optimization.
@@ -592,10 +593,11 @@ export function optimizeWithdrawalsACAaware(
   }
 
   // Calculate MAGI from the unconstrained plan
-  // ACA MAGI = ordinary income + capital gains + FULL SS income - HSA contributions
+  // ACA MAGI = ordinary income + capital gains + dividends + FULL SS income - HSA contributions
   const unconstrainedMAGI =
     unconstrainedPlan.ordinaryIncome +
     unconstrainedPlan.capitalGains +
+    (acaContext.dividendIncome ?? 0) +
     acaContext.ssIncome -
     acaContext.hsaContribDeduction;
 
@@ -604,13 +606,14 @@ export function optimizeWithdrawalsACAaware(
     return { ...unconstrainedPlan, acaConstrained: false };
   }
 
-  // Calculate mandatory MAGI (RMDs + SEPP + pension — can't be reduced)
+  // Calculate mandatory MAGI (RMDs + SEPP + pension + dividends — can't be reduced)
   let mandatoryOrdinaryIncome = 0;
   for (const as of accountStates) {
     mandatoryOrdinaryIncome += as.rmdAmount + as.seppAmount;
   }
   mandatoryOrdinaryIncome += pensionIncome;
-  const mandatoryMAGI = mandatoryOrdinaryIncome + acaContext.ssIncome - acaContext.hsaContribDeduction;
+  const mandatoryMAGI = mandatoryOrdinaryIncome + (acaContext.dividendIncome ?? 0) +
+    acaContext.ssIncome - acaContext.hsaContribDeduction;
 
   // If mandatory income alone exceeds the cliff, no point capping
   if (mandatoryMAGI > acaContext.cliff400FPL) {

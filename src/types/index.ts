@@ -18,6 +18,7 @@ export interface Account {
   expectedReturn: number; // percentage, e.g. 7 for 7%
   costBasis: number; // for taxable accounts, dollar amount of cost basis
   seppEnabled: boolean; // for traditional accounts pre-59.5
+  dividendYield: number; // percentage, e.g. 1.5 for 1.5%. For taxable accounts, generates taxable MAGI.
 }
 
 export interface SocialSecurityConfig {
@@ -118,6 +119,11 @@ export interface Settings {
   withdrawalHardLimit: number | null; // percentage. null = disabled. Caps investment withdrawals.
   cashFloorYears: number; // minimum years of spending to keep in cash. Below this = failure.
   austerityReduction: number | null; // percentage spending reduction when cash below floor. null = disabled.
+  glidePath: {
+    enabled: boolean;
+    safeYearsStart: number; // years of expenses in bonds+cash at start of retirement
+    safeYearsEnd: number;   // years of expenses in bonds+cash at end of retirement
+  };
 }
 
 export interface AppState {
@@ -174,6 +180,7 @@ export interface YearResult {
   bufferBorrowed: number; // amount cash dipped below target (but still above floor)
   cashBalance: number; // ending cash balance
   cashBelowFloor: boolean; // true if cash dropped below floor this year
+  dividendIncome: number; // taxable dividend income from taxable accounts (affects MAGI)
   inAusterity: boolean; // true if spending was reduced due to austerity mode
   totalPortfolioValue: number;
   phase: 'accumulation' | 'retirement';

@@ -16,6 +16,7 @@ function makeAccount(overrides: Partial<Account> & { id: string; type: Account['
     expectedReturn: 7,
     costBasis: 0,
     seppEnabled: false,
+    dividendYield: 0,
     ...overrides,
   };
 }

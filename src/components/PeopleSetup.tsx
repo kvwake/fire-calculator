@@ -45,6 +45,7 @@ export default function PeopleSetup() {
           expectedReturn: 4,
           costBasis: 0,
           seppEnabled: false,
+          dividendYield: 0,
         },
       });
     }

@@ -39,6 +39,7 @@ export default function AccountsSetup() {
       expectedReturn: 10,
       costBasis: 0,
       seppEnabled: false,
+      dividendYield: 0,
     };
     dispatch({ type: 'ADD_ACCOUNT', payload: account });
   };
@@ -218,19 +219,37 @@ export default function AccountsSetup() {
               </div>
 
               {account.type === 'taxable' && (
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
-                    Cost Basis ($)
-                  </label>
-                  <NumberInput
-                    value={account.costBasis}
-                    onChange={(v) => updateAccount({ ...account, costBasis: v })}
-                    min={0}
-                  />
-                  <p className="mt-1 text-xs text-gray-500 dark:text-gray-400">
-                    What you originally invested (not including gains)
-                  </p>
-                </div>
+                <>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
+                      Cost Basis ($)
+                    </label>
+                    <NumberInput
+                      value={account.costBasis}
+                      onChange={(v) => updateAccount({ ...account, costBasis: v })}
+                      min={0}
+                    />
+                    <p className="mt-1 text-xs text-gray-500 dark:text-gray-400">
+                      What you originally invested (not including gains)
+                    </p>
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
+                      Dividend Yield (%)
+                    </label>
+                    <NumberInput
+                      value={account.dividendYield}
+                      onChange={(v) => updateAccount({ ...account, dividendYield: v })}
+                      min={0}
+                      max={10}
+                      step={0.1}
+                    />
+                    <p className="mt-1 text-xs text-gray-500 dark:text-gray-400">
+                      Total stock market ~1.3% | S&P 500 ~1.5% | Dividend funds ~3%+.
+                      Dividends from taxable accounts count as MAGI and can trigger ACA cliff.
+                    </p>
+                  </div>
+                </>
               )}
 
               {account.type === 'traditional' && (

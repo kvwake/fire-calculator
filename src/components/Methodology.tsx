@@ -254,9 +254,50 @@ export default function Methodology() {
           keep their fixed configured return.
         </p>
         <p className="mt-2">
-          <strong>Historical backtesting</strong> uses every rolling period from actual S&P 500 data
-          (1928-present) to show how your plan would have performed in every historical market
-          environment, including the Great Depression, stagflation, dot-com bust, and 2008 crisis.
+          <strong>Historical backtesting</strong> uses every rolling period from actual S&P 500 and
+          US government bond data (1871-present) to show how your plan would have performed in
+          every historical market environment, including the Great Depression, stagflation,
+          dot-com bust, and 2008 crisis. Both equity and bond returns are historically accurate.
+        </p>
+      </Section>
+
+      <Section title="Dividend income tracking">
+        <p>
+          Taxable brokerage accounts generate dividend income that is taxable each year even without
+          selling any shares. This "phantom income" counts toward your <Term t="magi">MAGI</Term> and
+          can push you over the <Term t="aca cliff">ACA cliff</Term> or trigger{' '}
+          <Term t="irmaa">IRMAA surcharges</Term> — even if you don't need the money. The simulation
+          tracks dividends based on each taxable account's configured dividend yield, includes them
+          in all MAGI calculations, and factors them into ACA-constrained withdrawal optimization.
+        </p>
+        <p className="mt-2">
+          <strong>Mitigation:</strong> Hold dividend-heavy investments (value funds, bond funds, REITs)
+          in tax-advantaged accounts (traditional, Roth, HSA). Use low-dividend growth funds or
+          tax-managed funds in taxable accounts to minimize phantom MAGI.
+        </p>
+      </Section>
+
+      <Section title="Asset allocation glide path">
+        <p>
+          When enabled, the simulation automatically adjusts the equity/bond allocation of your
+          portfolio over the course of retirement. You configure "safe years" — how many years of
+          expenses should be held in bonds and cash — at the start and end of retirement. The
+          allocation interpolates linearly between these targets.
+        </p>
+        <p className="mt-2">
+          <strong>Why a rising equity glide path?</strong> Research by Kitces and Pfau shows that
+          starting retirement with a more conservative allocation (more bonds) and gradually
+          increasing equity exposure actually improves success rates. This is because:
+        </p>
+        <ul className="list-disc ml-5 mt-1 space-y-1">
+          <li>Early retirement is when sequence-of-returns risk is highest — a crash in years 1-5 can be devastating</li>
+          <li>More bonds early on protects against this critical window</li>
+          <li>Portfolios that survive the early years benefit from higher equity growth later</li>
+          <li>This creates a natural "rising equity glide path" that outperforms static allocations</li>
+        </ul>
+        <p className="mt-2">
+          The glide path only affects Monte Carlo and historical backtesting modes, where market
+          returns are variable. In deterministic mode, accounts use their configured expected returns.
         </p>
       </Section>
 
