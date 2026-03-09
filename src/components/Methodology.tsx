@@ -83,6 +83,9 @@ export default function Methodology() {
               You pay a small amount of tax now (at low rates) to avoid paying more tax later (at higher rates).
               This also reduces future <Term t="rmd">required minimum distributions</Term>.
               The strategy is configurable: you can fill up through the 12%, 22%, or 24% bracket.
+              Conversions are automatically constrained by <Term t="irmaa">IRMAA</Term> look-ahead —
+              if anyone in the household will be on Medicare within 2 years, conversions are capped
+              to avoid triggering surcharges (unless the tax savings clearly exceed the IRMAA cost).
             </p>
           </div>
           <div>

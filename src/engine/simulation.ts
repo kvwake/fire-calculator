@@ -5,7 +5,7 @@ import { calculateSEPPPayment, isSEPPRequired, getSEPPEndAge } from './sepp';
 import { optimizeWithdrawals, optimizeWithdrawalsACAaware, ACAContext, calculateRothConversion, calculateCapGainsHarvest } from './withdrawal';
 import { calculateTotalTax } from './tax';
 import { getStandardDeduction, getFederalBrackets } from '../data/federalTax';
-import { calculateIRMAA } from '../data/irmaa';
+import { calculateIRMAA, getIRMAAThreshold } from '../data/irmaa';
 import { calculateACASubsidy, getACACliff } from '../data/aca';
 import { isHSAEligible, getHSAContributionLimit } from '../data/hsa';
 
@@ -602,6 +602,51 @@ export function runSimulation(state: AppState, returnOverrides?: ReturnOverrides
           );
         } else {
           incomeHeadroom = Math.min(incomeHeadroom, magiHeadroom);
+        }
+      }
+
+      // IRMAA look-ahead: if anyone will be on Medicare in 2 years, cap conversions
+      // to avoid triggering IRMAA surcharges. IRMAA uses 2-year lookback MAGI.
+      if (incomeHeadroom > 0) {
+        const futureAge = age + 2;
+        const futurePerson2Age = person2Age !== null ? person2Age + 2 : null;
+        let futureMedicareCount = 0;
+        if (futureAge >= 65) futureMedicareCount++;
+        if (futurePerson2Age !== null && futurePerson2Age >= 65) futureMedicareCount++;
+
+        if (futureMedicareCount > 0) {
+          // Current MAGI before conversion
+          const currentMAGI = withdrawalPlan.ordinaryIncome +
+            withdrawalPlan.capitalGains + totalSSIncome;
+          const irmaaThreshold = getIRMAAThreshold(state.settings.filingStatus);
+
+          if (currentMAGI < irmaaThreshold) {
+            // Cap conversion so MAGI stays below the IRMAA threshold
+            const irmaaHeadroom = irmaaThreshold - currentMAGI;
+            if (irmaaHeadroom < incomeHeadroom) {
+              // Calculate what IRMAA cost would be if we did the full conversion
+              const fullConvMAGI = currentMAGI + incomeHeadroom;
+              const irmaaIfFull = calculateIRMAA(fullConvMAGI, state.settings.filingStatus, futureMedicareCount);
+
+              // Only cap if IRMAA cost exceeds the marginal tax rate benefit
+              // Rough estimate: conversion saves conversionMaxRate on the amount above threshold,
+              // but IRMAA costs are fixed tiers. Cap unless benefit clearly exceeds cost.
+              const amountOverThreshold = incomeHeadroom - irmaaHeadroom;
+              const estimatedTaxSaving = amountOverThreshold * conversionMaxRate;
+              if (irmaaIfFull.annualSurcharge > estimatedTaxSaving) {
+                annotations.push(
+                  `Roth conversion: Capped to avoid IRMAA surcharge. Converting the full ` +
+                  `$${Math.round(incomeHeadroom).toLocaleString()} would push your MAGI to ` +
+                  `$${Math.round(fullConvMAGI).toLocaleString()}, triggering ` +
+                  `$${Math.round(irmaaIfFull.annualSurcharge).toLocaleString()}/year in Medicare ` +
+                  `surcharges 2 years from now (IRMAA uses 2-year lookback). ` +
+                  `Conversion limited to $${Math.round(irmaaHeadroom).toLocaleString()} to stay ` +
+                  `below the $${irmaaThreshold.toLocaleString()} IRMAA threshold.`
+                );
+                incomeHeadroom = Math.max(0, irmaaHeadroom);
+              }
+            }
+          }
         }
       }
 
