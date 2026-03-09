@@ -1,5 +1,5 @@
 import { createContext, useContext, useReducer, useEffect, ReactNode } from 'react';
-import { AppState, Person, Account, SocialSecurityConfig, SpendingConfig, Settings } from '../types';
+import { AppState, Person, Account, SocialSecurityConfig, PensionConfig, SpendingConfig, Settings, BudgetItem } from '../types';
 
 const STORAGE_KEY = 'fire-calculator-state';
 
@@ -7,6 +7,7 @@ const defaultState: AppState = {
   people: [],
   accounts: [],
   socialSecurity: [],
+  pensions: [],
   spending: {
     phases: [
       {
@@ -20,14 +21,23 @@ const defaultState: AppState = {
     healthcare: {
       pre65AnnualPerPerson: 12000,
       post65AnnualPerPerson: 3000,
+      inflationRate: null,
     },
+    budgetItems: [],
   },
   settings: {
     inflationRate: 3,
     state: 'TX',
     filingStatus: 'married',
-    retirementAge: 55,
+    retirementYear: new Date().getFullYear() + 25,
     cashYearsOfExpenses: 2,
+    rothConversionStrategy: 'fill22',
+    capitalGainsHarvesting: true,
+    hsaContributionInRetirement: false,
+    withdrawalSoftLimit: null,
+    withdrawalHardLimit: null,
+    cashFloorYears: 1,
+    austerityReduction: null,
   },
 };
 
@@ -43,8 +53,16 @@ type Action =
   | { type: 'REMOVE_ACCOUNT'; payload: string }
   | { type: 'SET_SOCIAL_SECURITY'; payload: SocialSecurityConfig[] }
   | { type: 'UPDATE_SS_CONFIG'; payload: SocialSecurityConfig }
+  | { type: 'SET_PENSIONS'; payload: PensionConfig[] }
+  | { type: 'ADD_PENSION'; payload: PensionConfig }
+  | { type: 'UPDATE_PENSION'; payload: PensionConfig }
+  | { type: 'REMOVE_PENSION'; payload: string }
   | { type: 'SET_SPENDING'; payload: SpendingConfig }
-  | { type: 'SET_SETTINGS'; payload: Settings };
+  | { type: 'SET_SETTINGS'; payload: Settings }
+  | { type: 'ADD_BUDGET_ITEM'; payload: BudgetItem }
+  | { type: 'UPDATE_BUDGET_ITEM'; payload: BudgetItem }
+  | { type: 'REMOVE_BUDGET_ITEM'; payload: string }
+  | { type: 'SET_BUDGET_ITEMS'; payload: BudgetItem[] };
 
 function reducer(state: AppState, action: Action): AppState {
   switch (action.type) {
@@ -68,6 +86,7 @@ function reducer(state: AppState, action: Action): AppState {
         people: state.people.filter((p) => p.id !== personId),
         accounts: state.accounts.filter((a) => a.owner !== personId),
         socialSecurity: state.socialSecurity.filter((ss) => ss.personId !== personId),
+        pensions: state.pensions.filter((p) => p.personId !== personId),
       };
     }
     case 'SET_ACCOUNTS':
@@ -95,10 +114,34 @@ function reducer(state: AppState, action: Action): AppState {
           ss.personId === action.payload.personId ? action.payload : ss
         ),
       };
+    case 'SET_PENSIONS':
+      return { ...state, pensions: action.payload };
+    case 'ADD_PENSION':
+      return { ...state, pensions: [...state.pensions, action.payload] };
+    case 'UPDATE_PENSION':
+      return {
+        ...state,
+        pensions: state.pensions.map((p) =>
+          p.id === action.payload.id ? action.payload : p
+        ),
+      };
+    case 'REMOVE_PENSION':
+      return {
+        ...state,
+        pensions: state.pensions.filter((p) => p.id !== action.payload),
+      };
     case 'SET_SPENDING':
       return { ...state, spending: action.payload };
     case 'SET_SETTINGS':
       return { ...state, settings: action.payload };
+    case 'ADD_BUDGET_ITEM':
+      return { ...state, spending: { ...state.spending, budgetItems: [...(state.spending.budgetItems || []), action.payload] } };
+    case 'UPDATE_BUDGET_ITEM':
+      return { ...state, spending: { ...state.spending, budgetItems: (state.spending.budgetItems || []).map(b => b.id === action.payload.id ? action.payload : b) } };
+    case 'REMOVE_BUDGET_ITEM':
+      return { ...state, spending: { ...state.spending, budgetItems: (state.spending.budgetItems || []).filter(b => b.id !== action.payload) } };
+    case 'SET_BUDGET_ITEMS':
+      return { ...state, spending: { ...state.spending, budgetItems: action.payload } };
     default:
       return state;
   }
@@ -118,6 +161,7 @@ function loadState(): AppState {
           ...defaultState.spending,
           ...parsed.spending,
           healthcare: { ...defaultState.spending.healthcare, ...parsed.spending?.healthcare },
+          budgetItems: parsed.spending?.budgetItems ?? [],
         },
       };
     }

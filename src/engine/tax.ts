@@ -44,9 +44,12 @@ export function calculateTotalTax(situation: TaxSituation): TaxResult {
 
   const totalFederalTax = federal.incomeTax + federal.capitalGainsTax + federal.niit;
 
-  // State tax (on all taxable income including SS)
+  // State tax (on all taxable income including SS, with state-specific exclusions)
   const totalTaxableIncome = totalOrdinaryIncome + situation.capitalGains;
-  const stateTax = calculateStateTax(totalTaxableIncome, situation.state, situation.filingStatus);
+  const stateTax = calculateStateTax(totalTaxableIncome, situation.state, situation.filingStatus, {
+    ssIncome: taxableSSIncome,
+    capitalGains: situation.capitalGains,
+  });
 
   const totalTax = totalFederalTax + stateTax;
 

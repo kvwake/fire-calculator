@@ -1,6 +1,18 @@
 import { FilingStatus } from '../types';
 import { TaxBracket } from './federalTax';
 
+// How a state treats Social Security income
+export type SSExemption =
+  | 'exempt'           // Fully exempt from state tax (most states)
+  | 'taxed'            // Follows federal rules — taxes SS same as federal
+  | 'partial';         // Partial exemption (see ssExemptionDetail)
+
+// How a state treats long-term capital gains
+export type CapGainsTreatment =
+  | 'ordinary'         // Taxed as ordinary income (most states)
+  | 'exempt'           // No state income tax or fully exempt
+  | 'partial';         // Partial exclusion or preferential rate
+
 export interface StateTaxInfo {
   name: string;
   abbreviation: string;
@@ -13,6 +25,15 @@ export interface StateTaxInfo {
     single: number;
     married: number;
   };
+  // Social Security tax treatment
+  ssExemption: SSExemption;
+  // For 'partial' SS exemption: what % of SS is excluded from state tax (0-1)
+  // e.g., 0.65 means 65% of SS is excluded. Simplified from complex state rules.
+  ssExclusionRate?: number;
+  // Capital gains treatment
+  capitalGainsTreatment: CapGainsTreatment;
+  // For 'partial' cap gains: what fraction of LTCG is excluded (0-1)
+  capitalGainsExclusionRate?: number;
 }
 
 // All 50 states + DC tax data (2025 approximations)
@@ -35,6 +56,8 @@ const STATE_TAX_DATA: Record<string, StateTaxInfo> = {
       ],
     },
     standardDeduction: { single: 3000, married: 8500 },
+    ssExemption: 'exempt',
+    capitalGainsTreatment: 'ordinary',
   },
   AK: {
     name: 'Alaska',
@@ -42,6 +65,8 @@ const STATE_TAX_DATA: Record<string, StateTaxInfo> = {
     hasNoIncomeTax: true,
     brackets: { single: [], married: [] },
     standardDeduction: { single: 0, married: 0 },
+    ssExemption: 'exempt',
+    capitalGainsTreatment: 'exempt',
   },
   AZ: {
     name: 'Arizona',
@@ -52,6 +77,9 @@ const STATE_TAX_DATA: Record<string, StateTaxInfo> = {
       married: [{ min: 0, max: Infinity, rate: 0.025 }],
     },
     standardDeduction: { single: 14600, married: 29200 },
+    ssExemption: 'exempt',
+    capitalGainsTreatment: 'partial',
+    capitalGainsExclusionRate: 0.25,
   },
   AR: {
     name: 'Arkansas',
@@ -70,6 +98,9 @@ const STATE_TAX_DATA: Record<string, StateTaxInfo> = {
       ],
     },
     standardDeduction: { single: 2340, married: 4680 },
+    ssExemption: 'exempt',
+    capitalGainsTreatment: 'partial',
+    capitalGainsExclusionRate: 0.50,
   },
   CA: {
     name: 'California',
@@ -102,6 +133,8 @@ const STATE_TAX_DATA: Record<string, StateTaxInfo> = {
       ],
     },
     standardDeduction: { single: 5540, married: 11080 },
+    ssExemption: 'exempt',
+    capitalGainsTreatment: 'ordinary',
   },
   CO: {
     name: 'Colorado',
@@ -112,6 +145,9 @@ const STATE_TAX_DATA: Record<string, StateTaxInfo> = {
       married: [{ min: 0, max: Infinity, rate: 0.044 }],
     },
     standardDeduction: { single: 15000, married: 30000 },
+    ssExemption: 'partial',
+    ssExclusionRate: 0.75,
+    capitalGainsTreatment: 'ordinary',
   },
   CT: {
     name: 'Connecticut',
@@ -138,6 +174,9 @@ const STATE_TAX_DATA: Record<string, StateTaxInfo> = {
       ],
     },
     standardDeduction: { single: 0, married: 0 },
+    ssExemption: 'partial',
+    ssExclusionRate: 0.75,
+    capitalGainsTreatment: 'ordinary',
   },
   DE: {
     name: 'Delaware',
@@ -164,6 +203,8 @@ const STATE_TAX_DATA: Record<string, StateTaxInfo> = {
       ],
     },
     standardDeduction: { single: 3250, married: 6500 },
+    ssExemption: 'exempt',
+    capitalGainsTreatment: 'ordinary',
   },
   DC: {
     name: 'District of Columbia',
@@ -190,6 +231,8 @@ const STATE_TAX_DATA: Record<string, StateTaxInfo> = {
       ],
     },
     standardDeduction: { single: 14600, married: 29200 },
+    ssExemption: 'exempt',
+    capitalGainsTreatment: 'ordinary',
   },
   FL: {
     name: 'Florida',
@@ -197,6 +240,8 @@ const STATE_TAX_DATA: Record<string, StateTaxInfo> = {
     hasNoIncomeTax: true,
     brackets: { single: [], married: [] },
     standardDeduction: { single: 0, married: 0 },
+    ssExemption: 'exempt',
+    capitalGainsTreatment: 'exempt',
   },
   GA: {
     name: 'Georgia',
@@ -207,6 +252,8 @@ const STATE_TAX_DATA: Record<string, StateTaxInfo> = {
       married: [{ min: 0, max: Infinity, rate: 0.0539 }],
     },
     standardDeduction: { single: 12000, married: 24000 },
+    ssExemption: 'exempt',
+    capitalGainsTreatment: 'ordinary',
   },
   HI: {
     name: 'Hawaii',
@@ -243,6 +290,8 @@ const STATE_TAX_DATA: Record<string, StateTaxInfo> = {
       ],
     },
     standardDeduction: { single: 2200, married: 4400 },
+    ssExemption: 'exempt',
+    capitalGainsTreatment: 'ordinary',
   },
   ID: {
     name: 'Idaho',
@@ -253,6 +302,8 @@ const STATE_TAX_DATA: Record<string, StateTaxInfo> = {
       married: [{ min: 0, max: Infinity, rate: 0.058 }],
     },
     standardDeduction: { single: 14600, married: 29200 },
+    ssExemption: 'exempt',
+    capitalGainsTreatment: 'ordinary',
   },
   IL: {
     name: 'Illinois',
@@ -263,6 +314,8 @@ const STATE_TAX_DATA: Record<string, StateTaxInfo> = {
       married: [{ min: 0, max: Infinity, rate: 0.0495 }],
     },
     standardDeduction: { single: 0, married: 0 },
+    ssExemption: 'exempt',
+    capitalGainsTreatment: 'ordinary',
   },
   IN: {
     name: 'Indiana',
@@ -273,6 +326,8 @@ const STATE_TAX_DATA: Record<string, StateTaxInfo> = {
       married: [{ min: 0, max: Infinity, rate: 0.0305 }],
     },
     standardDeduction: { single: 0, married: 0 },
+    ssExemption: 'exempt',
+    capitalGainsTreatment: 'ordinary',
   },
   IA: {
     name: 'Iowa',
@@ -283,6 +338,8 @@ const STATE_TAX_DATA: Record<string, StateTaxInfo> = {
       married: [{ min: 0, max: Infinity, rate: 0.038 }],
     },
     standardDeduction: { single: 14600, married: 29200 },
+    ssExemption: 'exempt',
+    capitalGainsTreatment: 'ordinary',
   },
   KS: {
     name: 'Kansas',
@@ -301,6 +358,8 @@ const STATE_TAX_DATA: Record<string, StateTaxInfo> = {
       ],
     },
     standardDeduction: { single: 3500, married: 8000 },
+    ssExemption: 'exempt',
+    capitalGainsTreatment: 'ordinary',
   },
   KY: {
     name: 'Kentucky',
@@ -311,6 +370,8 @@ const STATE_TAX_DATA: Record<string, StateTaxInfo> = {
       married: [{ min: 0, max: Infinity, rate: 0.04 }],
     },
     standardDeduction: { single: 3160, married: 6320 },
+    ssExemption: 'exempt',
+    capitalGainsTreatment: 'ordinary',
   },
   LA: {
     name: 'Louisiana',
@@ -329,6 +390,8 @@ const STATE_TAX_DATA: Record<string, StateTaxInfo> = {
       ],
     },
     standardDeduction: { single: 0, married: 0 },
+    ssExemption: 'exempt',
+    capitalGainsTreatment: 'ordinary',
   },
   ME: {
     name: 'Maine',
@@ -347,6 +410,8 @@ const STATE_TAX_DATA: Record<string, StateTaxInfo> = {
       ],
     },
     standardDeduction: { single: 14600, married: 29200 },
+    ssExemption: 'exempt',
+    capitalGainsTreatment: 'ordinary',
   },
   MD: {
     name: 'Maryland',
@@ -375,6 +440,8 @@ const STATE_TAX_DATA: Record<string, StateTaxInfo> = {
       ],
     },
     standardDeduction: { single: 2550, married: 5150 },
+    ssExemption: 'exempt',
+    capitalGainsTreatment: 'ordinary',
   },
   MA: {
     name: 'Massachusetts',
@@ -391,6 +458,8 @@ const STATE_TAX_DATA: Record<string, StateTaxInfo> = {
       ],
     },
     standardDeduction: { single: 0, married: 0 },
+    ssExemption: 'exempt',
+    capitalGainsTreatment: 'ordinary',
   },
   MI: {
     name: 'Michigan',
@@ -401,6 +470,8 @@ const STATE_TAX_DATA: Record<string, StateTaxInfo> = {
       married: [{ min: 0, max: Infinity, rate: 0.0425 }],
     },
     standardDeduction: { single: 0, married: 0 },
+    ssExemption: 'exempt',
+    capitalGainsTreatment: 'ordinary',
   },
   MN: {
     name: 'Minnesota',
@@ -421,6 +492,9 @@ const STATE_TAX_DATA: Record<string, StateTaxInfo> = {
       ],
     },
     standardDeduction: { single: 14575, married: 29150 },
+    ssExemption: 'partial',
+    ssExclusionRate: 0.5,
+    capitalGainsTreatment: 'ordinary',
   },
   MS: {
     name: 'Mississippi',
@@ -437,6 +511,8 @@ const STATE_TAX_DATA: Record<string, StateTaxInfo> = {
       ],
     },
     standardDeduction: { single: 2300, married: 4600 },
+    ssExemption: 'exempt',
+    capitalGainsTreatment: 'ordinary',
   },
   MO: {
     name: 'Missouri',
@@ -465,6 +541,8 @@ const STATE_TAX_DATA: Record<string, StateTaxInfo> = {
       ],
     },
     standardDeduction: { single: 14600, married: 29200 },
+    ssExemption: 'exempt',
+    capitalGainsTreatment: 'ordinary',
   },
   MT: {
     name: 'Montana',
@@ -475,6 +553,9 @@ const STATE_TAX_DATA: Record<string, StateTaxInfo> = {
       married: [{ min: 0, max: Infinity, rate: 0.047 }],
     },
     standardDeduction: { single: 14600, married: 29200 },
+    ssExemption: 'partial',
+    ssExclusionRate: 0.7,
+    capitalGainsTreatment: 'ordinary',
   },
   NE: {
     name: 'Nebraska',
@@ -495,6 +576,8 @@ const STATE_TAX_DATA: Record<string, StateTaxInfo> = {
       ],
     },
     standardDeduction: { single: 8050, married: 16100 },
+    ssExemption: 'exempt',
+    capitalGainsTreatment: 'ordinary',
   },
   NV: {
     name: 'Nevada',
@@ -502,6 +585,8 @@ const STATE_TAX_DATA: Record<string, StateTaxInfo> = {
     hasNoIncomeTax: true,
     brackets: { single: [], married: [] },
     standardDeduction: { single: 0, married: 0 },
+    ssExemption: 'exempt',
+    capitalGainsTreatment: 'exempt',
   },
   NH: {
     name: 'New Hampshire',
@@ -509,6 +594,8 @@ const STATE_TAX_DATA: Record<string, StateTaxInfo> = {
     hasNoIncomeTax: true,
     brackets: { single: [], married: [] },
     standardDeduction: { single: 0, married: 0 },
+    ssExemption: 'exempt',
+    capitalGainsTreatment: 'exempt',
   },
   NJ: {
     name: 'New Jersey',
@@ -535,6 +622,8 @@ const STATE_TAX_DATA: Record<string, StateTaxInfo> = {
       ],
     },
     standardDeduction: { single: 0, married: 0 },
+    ssExemption: 'exempt',
+    capitalGainsTreatment: 'ordinary',
   },
   NM: {
     name: 'New Mexico',
@@ -557,6 +646,9 @@ const STATE_TAX_DATA: Record<string, StateTaxInfo> = {
       ],
     },
     standardDeduction: { single: 14600, married: 29200 },
+    ssExemption: 'partial',
+    ssExclusionRate: 0.8,
+    capitalGainsTreatment: 'ordinary',
   },
   NY: {
     name: 'New York',
@@ -587,6 +679,8 @@ const STATE_TAX_DATA: Record<string, StateTaxInfo> = {
       ],
     },
     standardDeduction: { single: 8000, married: 16050 },
+    ssExemption: 'exempt',
+    capitalGainsTreatment: 'ordinary',
   },
   NC: {
     name: 'North Carolina',
@@ -597,6 +691,8 @@ const STATE_TAX_DATA: Record<string, StateTaxInfo> = {
       married: [{ min: 0, max: Infinity, rate: 0.045 }],
     },
     standardDeduction: { single: 12750, married: 25500 },
+    ssExemption: 'exempt',
+    capitalGainsTreatment: 'ordinary',
   },
   ND: {
     name: 'North Dakota',
@@ -613,6 +709,9 @@ const STATE_TAX_DATA: Record<string, StateTaxInfo> = {
       ],
     },
     standardDeduction: { single: 14600, married: 29200 },
+    ssExemption: 'exempt',
+    capitalGainsTreatment: 'partial',
+    capitalGainsExclusionRate: 0.40,
   },
   OH: {
     name: 'Ohio',
@@ -631,6 +730,8 @@ const STATE_TAX_DATA: Record<string, StateTaxInfo> = {
       ],
     },
     standardDeduction: { single: 0, married: 0 },
+    ssExemption: 'exempt',
+    capitalGainsTreatment: 'ordinary',
   },
   OK: {
     name: 'Oklahoma',
@@ -655,6 +756,8 @@ const STATE_TAX_DATA: Record<string, StateTaxInfo> = {
       ],
     },
     standardDeduction: { single: 6350, married: 12700 },
+    ssExemption: 'exempt',
+    capitalGainsTreatment: 'ordinary',
   },
   OR: {
     name: 'Oregon',
@@ -675,6 +778,8 @@ const STATE_TAX_DATA: Record<string, StateTaxInfo> = {
       ],
     },
     standardDeduction: { single: 2745, married: 5495 },
+    ssExemption: 'exempt',
+    capitalGainsTreatment: 'ordinary',
   },
   PA: {
     name: 'Pennsylvania',
@@ -685,6 +790,8 @@ const STATE_TAX_DATA: Record<string, StateTaxInfo> = {
       married: [{ min: 0, max: Infinity, rate: 0.0307 }],
     },
     standardDeduction: { single: 0, married: 0 },
+    ssExemption: 'exempt',
+    capitalGainsTreatment: 'ordinary',
   },
   RI: {
     name: 'Rhode Island',
@@ -703,6 +810,9 @@ const STATE_TAX_DATA: Record<string, StateTaxInfo> = {
       ],
     },
     standardDeduction: { single: 10550, married: 21150 },
+    ssExemption: 'partial',
+    ssExclusionRate: 0.8,
+    capitalGainsTreatment: 'ordinary',
   },
   SC: {
     name: 'South Carolina',
@@ -721,6 +831,9 @@ const STATE_TAX_DATA: Record<string, StateTaxInfo> = {
       ],
     },
     standardDeduction: { single: 14600, married: 29200 },
+    ssExemption: 'exempt',
+    capitalGainsTreatment: 'partial',
+    capitalGainsExclusionRate: 0.44,
   },
   SD: {
     name: 'South Dakota',
@@ -728,6 +841,8 @@ const STATE_TAX_DATA: Record<string, StateTaxInfo> = {
     hasNoIncomeTax: true,
     brackets: { single: [], married: [] },
     standardDeduction: { single: 0, married: 0 },
+    ssExemption: 'exempt',
+    capitalGainsTreatment: 'exempt',
   },
   TN: {
     name: 'Tennessee',
@@ -735,6 +850,8 @@ const STATE_TAX_DATA: Record<string, StateTaxInfo> = {
     hasNoIncomeTax: true,
     brackets: { single: [], married: [] },
     standardDeduction: { single: 0, married: 0 },
+    ssExemption: 'exempt',
+    capitalGainsTreatment: 'exempt',
   },
   TX: {
     name: 'Texas',
@@ -742,6 +859,8 @@ const STATE_TAX_DATA: Record<string, StateTaxInfo> = {
     hasNoIncomeTax: true,
     brackets: { single: [], married: [] },
     standardDeduction: { single: 0, married: 0 },
+    ssExemption: 'exempt',
+    capitalGainsTreatment: 'exempt',
   },
   UT: {
     name: 'Utah',
@@ -752,6 +871,9 @@ const STATE_TAX_DATA: Record<string, StateTaxInfo> = {
       married: [{ min: 0, max: Infinity, rate: 0.0465 }],
     },
     standardDeduction: { single: 0, married: 0 },
+    ssExemption: 'partial',
+    ssExclusionRate: 0.9,
+    capitalGainsTreatment: 'ordinary',
   },
   VT: {
     name: 'Vermont',
@@ -772,6 +894,10 @@ const STATE_TAX_DATA: Record<string, StateTaxInfo> = {
       ],
     },
     standardDeduction: { single: 7000, married: 14050 },
+    ssExemption: 'partial',
+    ssExclusionRate: 0.5,
+    capitalGainsTreatment: 'partial',
+    capitalGainsExclusionRate: 0.40,
   },
   VA: {
     name: 'Virginia',
@@ -792,6 +918,8 @@ const STATE_TAX_DATA: Record<string, StateTaxInfo> = {
       ],
     },
     standardDeduction: { single: 4500, married: 9000 },
+    ssExemption: 'exempt',
+    capitalGainsTreatment: 'ordinary',
   },
   WA: {
     name: 'Washington',
@@ -799,6 +927,8 @@ const STATE_TAX_DATA: Record<string, StateTaxInfo> = {
     hasNoIncomeTax: true,
     brackets: { single: [], married: [] },
     standardDeduction: { single: 0, married: 0 },
+    ssExemption: 'exempt',
+    capitalGainsTreatment: 'exempt',
   },
   WV: {
     name: 'West Virginia',
@@ -821,6 +951,8 @@ const STATE_TAX_DATA: Record<string, StateTaxInfo> = {
       ],
     },
     standardDeduction: { single: 0, married: 0 },
+    ssExemption: 'exempt',
+    capitalGainsTreatment: 'ordinary',
   },
   WI: {
     name: 'Wisconsin',
@@ -841,6 +973,9 @@ const STATE_TAX_DATA: Record<string, StateTaxInfo> = {
       ],
     },
     standardDeduction: { single: 12760, married: 23620 },
+    ssExemption: 'exempt',
+    capitalGainsTreatment: 'partial',
+    capitalGainsExclusionRate: 0.30,
   },
   WY: {
     name: 'Wyoming',
@@ -848,6 +983,8 @@ const STATE_TAX_DATA: Record<string, StateTaxInfo> = {
     hasNoIncomeTax: true,
     brackets: { single: [], married: [] },
     standardDeduction: { single: 0, married: 0 },
+    ssExemption: 'exempt',
+    capitalGainsTreatment: 'exempt',
   },
 };
 
@@ -855,16 +992,42 @@ export function getStateTaxInfo(stateAbbr: string): StateTaxInfo | null {
   return STATE_TAX_DATA[stateAbbr] ?? null;
 }
 
+// Calculate state tax with income breakdown for proper SS and capital gains handling
 export function calculateStateTax(
   taxableIncome: number,
   stateAbbr: string,
-  filingStatus: FilingStatus
+  filingStatus: FilingStatus,
+  incomeBreakdown?: {
+    ssIncome?: number;        // taxable SS income (federal amount)
+    capitalGains?: number;    // LTCG amount
+  }
 ): number {
   const stateInfo = getStateTaxInfo(stateAbbr);
   if (!stateInfo || stateInfo.hasNoIncomeTax) return 0;
 
+  let adjustedIncome = taxableIncome;
+
+  // Apply SS exclusion if the state exempts or partially exempts SS
+  if (incomeBreakdown?.ssIncome && incomeBreakdown.ssIncome > 0) {
+    if (stateInfo.ssExemption === 'exempt') {
+      adjustedIncome -= incomeBreakdown.ssIncome;
+    } else if (stateInfo.ssExemption === 'partial' && stateInfo.ssExclusionRate) {
+      adjustedIncome -= incomeBreakdown.ssIncome * stateInfo.ssExclusionRate;
+    }
+    // 'taxed' = no adjustment, follows federal
+  }
+
+  // Apply capital gains exclusion if the state provides one
+  if (incomeBreakdown?.capitalGains && incomeBreakdown.capitalGains > 0) {
+    if (stateInfo.capitalGainsTreatment === 'partial' && stateInfo.capitalGainsExclusionRate) {
+      adjustedIncome -= incomeBreakdown.capitalGains * stateInfo.capitalGainsExclusionRate;
+    }
+    // 'ordinary' = no adjustment (taxed as ordinary)
+    // 'exempt' = handled by hasNoIncomeTax
+  }
+
   const deduction = stateInfo.standardDeduction[filingStatus];
-  const adjustedIncome = Math.max(0, taxableIncome - deduction);
+  adjustedIncome = Math.max(0, adjustedIncome - deduction);
 
   const brackets = stateInfo.brackets[filingStatus];
   let tax = 0;
