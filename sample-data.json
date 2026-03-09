@@ -1,0 +1,197 @@
+{
+  "people": [
+    {
+      "id": "p1",
+      "name": "Alex",
+      "currentAge": 38,
+      "lifeExpectancy": 92
+    },
+    {
+      "id": "p2",
+      "name": "Jordan",
+      "currentAge": 36,
+      "lifeExpectancy": 95
+    }
+  ],
+  "accounts": [
+    {
+      "id": "a1",
+      "name": "Alex 401(k)",
+      "type": "traditional",
+      "owner": "p1",
+      "balance": 420000,
+      "annualContribution": 23500,
+      "contributionEndAge": 50,
+      "expectedReturn": 10,
+      "costBasis": 0,
+      "seppEnabled": false,
+      "dividendYield": 0
+    },
+    {
+      "id": "a2",
+      "name": "Alex Roth IRA",
+      "type": "roth",
+      "owner": "p1",
+      "balance": 85000,
+      "annualContribution": 7000,
+      "contributionEndAge": 50,
+      "expectedReturn": 10,
+      "costBasis": 0,
+      "seppEnabled": false,
+      "dividendYield": 0
+    },
+    {
+      "id": "a3",
+      "name": "Jordan 401(k)",
+      "type": "traditional",
+      "owner": "p2",
+      "balance": 310000,
+      "annualContribution": 23500,
+      "contributionEndAge": 48,
+      "expectedReturn": 10,
+      "costBasis": 0,
+      "seppEnabled": false,
+      "dividendYield": 0
+    },
+    {
+      "id": "a4",
+      "name": "Jordan Roth IRA",
+      "type": "roth",
+      "owner": "p2",
+      "balance": 62000,
+      "annualContribution": 7000,
+      "contributionEndAge": 48,
+      "expectedReturn": 10,
+      "costBasis": 0,
+      "seppEnabled": false,
+      "dividendYield": 0
+    },
+    {
+      "id": "a5",
+      "name": "Joint Brokerage",
+      "type": "taxable",
+      "owner": "p1",
+      "balance": 275000,
+      "annualContribution": 30000,
+      "contributionEndAge": 50,
+      "expectedReturn": 10,
+      "costBasis": 195000,
+      "seppEnabled": false,
+      "dividendYield": 1.3
+    },
+    {
+      "id": "a6",
+      "name": "Alex HSA",
+      "type": "hsa",
+      "owner": "p1",
+      "balance": 28000,
+      "annualContribution": 8550,
+      "contributionEndAge": 50,
+      "expectedReturn": 10,
+      "costBasis": 0,
+      "seppEnabled": false,
+      "dividendYield": 0
+    },
+    {
+      "id": "a7",
+      "name": "Cash Reserve",
+      "type": "cash",
+      "owner": "p1",
+      "balance": 120000,
+      "annualContribution": 0,
+      "contributionEndAge": 50,
+      "expectedReturn": 4.5,
+      "costBasis": 0,
+      "seppEnabled": false,
+      "dividendYield": 0
+    },
+    {
+      "id": "a8",
+      "name": "Jordan 457(b)",
+      "type": "457b",
+      "owner": "p2",
+      "balance": 45000,
+      "annualContribution": 23500,
+      "contributionEndAge": 48,
+      "expectedReturn": 9,
+      "costBasis": 0,
+      "seppEnabled": false,
+      "dividendYield": 0
+    }
+  ],
+  "socialSecurity": [
+    {
+      "personId": "p1",
+      "enabled": true,
+      "monthlyBenefitAtFRA": 2800,
+      "claimingAge": 67
+    },
+    {
+      "personId": "p2",
+      "enabled": true,
+      "monthlyBenefitAtFRA": 2400,
+      "claimingAge": 67
+    }
+  ],
+  "pensions": [
+    {
+      "id": "pen1",
+      "personId": "p2",
+      "enabled": true,
+      "name": "Jordan State Pension",
+      "annualBenefit": 18000,
+      "startAge": 55,
+      "cola": 2
+    }
+  ],
+  "spending": {
+    "phases": [
+      {
+        "id": "sp1",
+        "label": "Early Retirement",
+        "startAge": 50,
+        "endAge": 64,
+        "annualAmount": 85000
+      },
+      {
+        "id": "sp2",
+        "label": "Normal Retirement",
+        "startAge": 65,
+        "endAge": 80,
+        "annualAmount": 72000
+      },
+      {
+        "id": "sp3",
+        "label": "Late Retirement",
+        "startAge": 81,
+        "endAge": 95,
+        "annualAmount": 60000
+      }
+    ],
+    "healthcare": {
+      "pre65AnnualPerPerson": 14000,
+      "post65AnnualPerPerson": 4000,
+      "inflationRate": 5
+    },
+    "budgetItems": []
+  },
+  "settings": {
+    "inflationRate": 3,
+    "state": "CO",
+    "filingStatus": "married",
+    "retirementYear": 2038,
+    "cashYearsOfExpenses": 2,
+    "rothConversionStrategy": "fill22",
+    "capitalGainsHarvesting": true,
+    "hsaContributionInRetirement": true,
+    "withdrawalSoftLimit": 4,
+    "withdrawalHardLimit": null,
+    "cashFloorYears": 1,
+    "austerityReduction": 15,
+    "glidePath": {
+      "enabled": true,
+      "safeYearsStart": 7,
+      "safeYearsEnd": 3
+    }
+  }
+}
