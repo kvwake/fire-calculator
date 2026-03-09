@@ -197,6 +197,78 @@ export default function SettingsPanel() {
         </div>
 
         <div className="rounded-lg border border-gray-200 bg-white p-4 shadow-sm dark:border-gray-700 dark:bg-gray-800">
+          <div className="flex items-center gap-2 mb-3">
+            <input
+              type="checkbox"
+              id="glidePath"
+              checked={state.settings.glidePath?.enabled ?? false}
+              onChange={(e) =>
+                updateSettings({
+                  glidePath: {
+                    ...(state.settings.glidePath ?? { safeYearsStart: 7, safeYearsEnd: 3 }),
+                    enabled: e.target.checked,
+                  },
+                })
+              }
+              className="h-4 w-4 rounded border-gray-300 text-blue-600 focus:ring-blue-500 dark:border-gray-600"
+            />
+            <label htmlFor="glidePath" className="text-sm font-medium text-gray-700 dark:text-gray-300">
+              Asset Allocation Glide Path
+            </label>
+          </div>
+          <p className="text-xs text-gray-500 dark:text-gray-400 mb-3">
+            Automatically shifts from conservative (more bonds) to growth (more equity) over retirement.
+            "Safe years" = how many years of expenses are held in bonds+cash. Early retirement benefits from
+            more conservative allocation to protect against sequence-of-returns risk.
+            Only applies to Monte Carlo and historical backtesting.
+          </p>
+          {state.settings.glidePath?.enabled && (
+            <div className="grid gap-4 sm:grid-cols-2">
+              <div>
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
+                  Safe Years at Start of Retirement
+                </label>
+                <NumberInput
+                  value={state.settings.glidePath?.safeYearsStart ?? 7}
+                  onChange={(v) =>
+                    updateSettings({
+                      glidePath: { ...state.settings.glidePath, enabled: true, safeYearsStart: v },
+                    })
+                  }
+                  min={0}
+                  max={15}
+                  step={1}
+                  decimals={false}
+                />
+                <p className="mt-1 text-xs text-gray-500 dark:text-gray-400">
+                  More conservative early on — higher bond allocation protects against bad early sequences.
+                </p>
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
+                  Safe Years at End of Retirement
+                </label>
+                <NumberInput
+                  value={state.settings.glidePath?.safeYearsEnd ?? 3}
+                  onChange={(v) =>
+                    updateSettings({
+                      glidePath: { ...state.settings.glidePath, enabled: true, safeYearsEnd: v },
+                    })
+                  }
+                  min={0}
+                  max={15}
+                  step={1}
+                  decimals={false}
+                />
+                <p className="mt-1 text-xs text-gray-500 dark:text-gray-400">
+                  Less conservative later — surviving portfolios benefit from equity growth.
+                </p>
+              </div>
+            </div>
+          )}
+        </div>
+
+        <div className="rounded-lg border border-gray-200 bg-white p-4 shadow-sm dark:border-gray-700 dark:bg-gray-800">
           <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
             Roth Conversion Strategy
           </label>
@@ -270,6 +342,7 @@ export default function SettingsPanel() {
                         expectedReturn: 10,
                         costBasis: 0,
                         seppEnabled: false,
+                        dividendYield: 0,
                       };
                       dispatch({ type: 'ADD_ACCOUNT', payload: hsaAccount });
                     }
