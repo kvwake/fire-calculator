@@ -47,6 +47,37 @@ export default function SettingsPanel() {
     }
   };
 
+  const handleReset = () => {
+    const wantsExport = confirm(
+      'Would you like to export your data before resetting?\n\nClick OK to export first, or Cancel to skip.'
+    );
+    if (wantsExport) {
+      handleExport();
+    }
+    const confirmReset = confirm(
+      'Are you sure you want to reset all data? This cannot be undone.'
+    );
+    if (confirmReset) {
+      dispatch({ type: 'SET_STATE', payload: {
+        people: [],
+        accounts: [],
+        socialSecurity: [],
+        pensions: [],
+        spending: {
+          phases: [{ id: crypto.randomUUID(), label: 'Retirement', startAge: 55, endAge: 95, annualAmount: 60000 }],
+          healthcare: { pre65AnnualPerPerson: 12000, post65AnnualPerPerson: 3000, inflationRate: null },
+          budgetItems: [],
+        },
+        settings: {
+          inflationRate: 3, state: 'TX', filingStatus: 'married', retirementYear: new Date().getFullYear() + 25,
+          cashYearsOfExpenses: 2, rothConversionStrategy: 'fill22', capitalGainsHarvesting: true,
+          hsaContributionInRetirement: false, withdrawalSoftLimit: null, withdrawalHardLimit: null,
+          cashFloorYears: 1, austerityReduction: null, glidePath: { enabled: false, safeYearsStart: 7, safeYearsEnd: 3 },
+        },
+      }});
+    }
+  };
+
   const inputClass = 'mt-1 block w-full rounded-md border border-gray-300 px-3 py-2 shadow-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500 dark:border-gray-600 dark:bg-gray-700 dark:text-white';
 
   return (
@@ -465,6 +496,13 @@ export default function SettingsPanel() {
               className="hidden"
             />
           </label>
+
+          <button
+            onClick={handleReset}
+            className="rounded-lg border border-red-300 bg-white px-4 py-2 text-sm font-medium text-red-700 shadow-sm hover:bg-red-50 dark:border-red-600 dark:bg-gray-700 dark:text-red-400 dark:hover:bg-gray-600"
+          >
+            Reset All Data
+          </button>
         </div>
       </div>
     </div>

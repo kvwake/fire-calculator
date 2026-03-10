@@ -33,7 +33,7 @@ export default function SocialSecuritySetup() {
     .filter((p) => {
       const retireAge = p.currentAge + (retirementYear - new Date().getFullYear());
       // Assume most people start working around age ~20, so 35 years = retire by ~55
-      return retireAge < 53;
+      return retireAge < 54;
     })
     .map((p) => p.name);
 
