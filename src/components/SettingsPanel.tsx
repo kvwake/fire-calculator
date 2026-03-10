@@ -48,15 +48,16 @@ export default function SettingsPanel() {
   };
 
   const handleReset = () => {
+    const confirmReset = confirm(
+      'Are you sure you want to reset all data? This cannot be undone.'
+    );
+    if (!confirmReset) return;
     const wantsExport = confirm(
-      'Would you like to export your data before resetting?\n\nClick OK to export first, or Cancel to skip.'
+      'Would you like to export your data first?'
     );
     if (wantsExport) {
       handleExport();
     }
-    const confirmReset = confirm(
-      'Are you sure you want to reset all data? This cannot be undone.'
-    );
     if (confirmReset) {
       dispatch({ type: 'SET_STATE', payload: {
         people: [],
