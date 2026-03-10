@@ -79,5 +79,5 @@ export function calculateRMD(accountBalance: number, age: number, birthYear: num
 // Roth IRAs don't have RMDs for the original owner
 // Roth 401(k)s did have RMDs but SECURE 2.0 eliminated them starting 2024
 export function accountHasRMD(accountType: string): boolean {
-  return accountType === 'traditional';
+  return accountType === 'traditional' || accountType === '457b';
 }

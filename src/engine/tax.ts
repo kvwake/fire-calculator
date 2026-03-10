@@ -44,9 +44,12 @@ export function calculateTotalTax(situation: TaxSituation): TaxResult {
 
   const totalFederalTax = federal.incomeTax + federal.capitalGainsTax + federal.niit;
 
-  // State tax (on all taxable income including SS)
+  // State tax (on all taxable income including SS, with state-specific exclusions)
   const totalTaxableIncome = totalOrdinaryIncome + situation.capitalGains;
-  const stateTax = calculateStateTax(totalTaxableIncome, situation.state, situation.filingStatus);
+  const stateTax = calculateStateTax(totalTaxableIncome, situation.state, situation.filingStatus, {
+    ssIncome: taxableSSIncome,
+    capitalGains: situation.capitalGains,
+  });
 
   const totalTax = totalFederalTax + stateTax;
 
@@ -64,8 +67,8 @@ export function calculateTotalTax(situation: TaxSituation): TaxResult {
     situation.capitalGains,
     situation.filingStatus
   );
-  const marginalOrdinaryRate =
-    (marginalCheck.incomeTax - federal.incomeTax) / 1000;
+  const marginalDiff = marginalCheck.incomeTax - federal.incomeTax;
+  const marginalOrdinaryRate = isFinite(marginalDiff) ? marginalDiff / 1000 : 0;
 
   return {
     federalIncomeTax: federal.incomeTax,

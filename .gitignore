@@ -3,3 +3,4 @@ dist
 .DS_Store
 *.local
 old/node_modules
+fire-calculator-data.json
