@@ -58,7 +58,7 @@ export default function AccountsSetup() {
   const totalBalance = state.accounts.reduce((sum, a) => sum + a.balance, 0);
   const totalContributions = state.accounts.reduce((sum, a) => sum + a.annualContribution, 0);
 
-  const inputClass = 'mt-1 block w-full rounded-md border border-gray-300 px-3 py-2 shadow-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500 dark:border-gray-600 dark:bg-gray-700 dark:text-white';
+  const inputClass = 'mt-1 block w-full rounded-md border border-gray-300 px-3 py-2 shadow-xs focus:border-blue-500 focus:outline-hidden focus:ring-1 focus:ring-blue-500 dark:border-gray-600 dark:bg-gray-700 dark:text-white';
 
   return (
     <div className="space-y-6">
@@ -85,7 +85,7 @@ export default function AccountsSetup() {
 
       <div className="space-y-4">
         {state.accounts.map((account) => (
-          <div key={account.id} className="rounded-lg border border-gray-200 bg-white p-6 shadow-sm dark:border-gray-700 dark:bg-gray-800">
+          <div key={account.id} className="rounded-lg border border-gray-200 bg-white p-6 shadow-xs dark:border-gray-700 dark:bg-gray-800">
             <div className="mb-4 flex items-center justify-between">
               <h3 className="font-medium dark:text-white">{account.name || 'Unnamed Account'}</h3>
               <button
@@ -261,7 +261,7 @@ export default function AccountsSetup() {
                     onChange={(e) =>
                       updateAccount({ ...account, seppEnabled: e.target.checked })
                     }
-                    className="h-4 w-4 rounded border-gray-300 text-blue-600 focus:ring-blue-500 dark:border-gray-600"
+                    className="h-4 w-4 rounded-sm border-gray-300 text-blue-600 focus:ring-blue-500 dark:border-gray-600"
                   />
                   <label htmlFor={`sepp-${account.id}`} className="text-sm text-gray-700 dark:text-gray-300">
                     Enable SEPP/72(t) for early access

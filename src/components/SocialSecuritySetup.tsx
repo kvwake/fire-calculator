@@ -78,7 +78,7 @@ export default function SocialSecuritySetup() {
           return (
             <div
               key={person.id}
-              className="rounded-lg border border-gray-200 bg-white p-6 shadow-sm dark:border-gray-700 dark:bg-gray-800"
+              className="rounded-lg border border-gray-200 bg-white p-6 shadow-xs dark:border-gray-700 dark:bg-gray-800"
             >
               <h3 className="mb-4 font-medium dark:text-white">{person.name}</h3>
 
@@ -94,7 +94,7 @@ export default function SocialSecuritySetup() {
                         payload: { ...ssConfig, enabled: e.target.checked },
                       })
                     }
-                    className="h-4 w-4 rounded border-gray-300 text-blue-600 focus:ring-blue-500 dark:border-gray-600"
+                    className="h-4 w-4 rounded-sm border-gray-300 text-blue-600 focus:ring-blue-500 dark:border-gray-600"
                   />
                   <label htmlFor={`ss-enabled-${person.id}`} className="text-sm text-gray-700 dark:text-gray-300">
                     Will receive Social Security

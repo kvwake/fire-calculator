@@ -903,7 +903,6 @@ export function optimizeWithdrawalsACAaware(
       );
       // Fill remainder from traditional, taxable, generic (no longer MAGI-constrained)
       fillRemainingUnconstrained(accountStates, plan, remainingNeed, ssIncome, filingStatus, state);
-      remainingNeed = 0;
     }
   }
 

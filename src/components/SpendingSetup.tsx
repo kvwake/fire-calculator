@@ -152,7 +152,7 @@ export default function SpendingSetup() {
     groupedItems[item.category].push(item);
   }
 
-  const inputClass = 'mt-1 block w-full rounded-md border border-gray-300 bg-white px-3 py-2 text-gray-900 shadow-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500 dark:border-gray-600 dark:bg-gray-700 dark:text-white';
+  const inputClass = 'mt-1 block w-full rounded-md border border-gray-300 bg-white px-3 py-2 text-gray-900 shadow-xs focus:border-blue-500 focus:outline-hidden focus:ring-1 focus:ring-blue-500 dark:border-gray-600 dark:bg-gray-700 dark:text-white';
 
   return (
     <div className="space-y-8">
@@ -192,7 +192,7 @@ export default function SpendingSetup() {
 
         {/* Presets dropdown */}
         {showPresets && (
-          <div className="rounded-lg border border-gray-200 bg-white p-4 shadow-sm dark:border-gray-700 dark:bg-gray-800">
+          <div className="rounded-lg border border-gray-200 bg-white p-4 shadow-xs dark:border-gray-700 dark:bg-gray-800">
             <p className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-3">
               Start from a preset (replaces current budget items):
             </p>
@@ -213,7 +213,7 @@ export default function SpendingSetup() {
 
         {/* Budget items table */}
         {budgetItems.length > 0 && (
-          <div className="rounded-lg border border-gray-200 bg-white shadow-sm dark:border-gray-700 dark:bg-gray-800">
+          <div className="rounded-lg border border-gray-200 bg-white shadow-xs dark:border-gray-700 dark:bg-gray-800">
             <div className="overflow-x-auto">
               <table className="w-full text-sm">
                 <thead className="border-b border-gray-200 bg-gray-50 dark:border-gray-700 dark:bg-gray-900/50">
@@ -317,7 +317,7 @@ export default function SpendingSetup() {
         {spending.phases.map((phase) => (
           <div
             key={phase.id}
-            className="rounded-lg border border-gray-200 bg-white p-4 shadow-sm dark:border-gray-700 dark:bg-gray-800"
+            className="rounded-lg border border-gray-200 bg-white p-4 shadow-xs dark:border-gray-700 dark:bg-gray-800"
           >
             <div className="grid gap-4 sm:grid-cols-4">
               <div>
@@ -364,7 +364,7 @@ export default function SpendingSetup() {
                   {budgetItems.length > 0 && (
                     <button
                       onClick={() => applyBudgetToPhase(phase.id)}
-                      className="rounded px-2 py-1 text-xs text-blue-600 hover:bg-blue-50 dark:text-blue-400 dark:hover:bg-blue-900/30"
+                      className="rounded-sm px-2 py-1 text-xs text-blue-600 hover:bg-blue-50 dark:text-blue-400 dark:hover:bg-blue-900/30"
                       title="Populate from budget"
                     >
                       Budget
@@ -373,7 +373,7 @@ export default function SpendingSetup() {
                   {spending.phases.length > 1 && (
                     <button
                       onClick={() => removePhase(phase.id)}
-                      className="rounded px-2 py-1 text-xs text-red-600 hover:bg-red-50 dark:text-red-400 dark:hover:bg-red-900/30"
+                      className="rounded-sm px-2 py-1 text-xs text-red-600 hover:bg-red-50 dark:text-red-400 dark:hover:bg-red-900/30"
                     >
                       Remove
                     </button>
@@ -400,7 +400,7 @@ export default function SpendingSetup() {
         </p>
 
         <div className="grid gap-6 sm:grid-cols-2">
-          <div className="rounded-lg border border-gray-200 bg-white p-4 shadow-sm dark:border-gray-700 dark:bg-gray-800">
+          <div className="rounded-lg border border-gray-200 bg-white p-4 shadow-xs dark:border-gray-700 dark:bg-gray-800">
             <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
               Pre-65 Healthcare (per person/year)
             </label>
@@ -418,7 +418,7 @@ export default function SpendingSetup() {
             </p>
           </div>
 
-          <div className="rounded-lg border border-gray-200 bg-white p-4 shadow-sm dark:border-gray-700 dark:bg-gray-800">
+          <div className="rounded-lg border border-gray-200 bg-white p-4 shadow-xs dark:border-gray-700 dark:bg-gray-800">
             <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
               Post-65 Healthcare (per person/year)
             </label>
@@ -437,7 +437,7 @@ export default function SpendingSetup() {
           </div>
         </div>
 
-        <div className="rounded-lg border border-gray-200 bg-white p-4 shadow-sm dark:border-gray-700 dark:bg-gray-800">
+        <div className="rounded-lg border border-gray-200 bg-white p-4 shadow-xs dark:border-gray-700 dark:bg-gray-800">
           <div className="flex items-center gap-2 mb-2">
             <input
               type="checkbox"
@@ -451,7 +451,7 @@ export default function SpendingSetup() {
                   },
                 })
               }
-              className="h-4 w-4 rounded border-gray-300 text-blue-600 focus:ring-blue-500 dark:border-gray-600"
+              className="h-4 w-4 rounded-sm border-gray-300 text-blue-600 focus:ring-blue-500 dark:border-gray-600"
             />
             <label htmlFor="healthcare-inflation" className="text-sm font-medium text-gray-700 dark:text-gray-300">
               Separate Healthcare Inflation Rate
@@ -569,7 +569,7 @@ function BudgetItemRow({
           <select
             value={item.category}
             onChange={(e) => onUpdate({ ...item, category: e.target.value as BudgetCategory })}
-            className="w-full text-xs rounded border border-gray-200 bg-white px-1 py-1 text-gray-900 dark:border-gray-600 dark:bg-gray-700 dark:text-white"
+            className="w-full text-xs rounded-sm border border-gray-200 bg-white px-1 py-1 text-gray-900 dark:border-gray-600 dark:bg-gray-700 dark:text-white"
           >
             {CATEGORY_OPTIONS.map(([val, label]) => (
               <option key={val} value={val}>{label}</option>
@@ -582,7 +582,7 @@ function BudgetItemRow({
             value={item.description}
             onChange={(e) => onUpdate({ ...item, description: e.target.value })}
             placeholder="Description"
-            className="w-full text-xs rounded border border-gray-200 bg-white px-2 py-1 text-gray-900 dark:border-gray-600 dark:bg-gray-700 dark:text-white"
+            className="w-full text-xs rounded-sm border border-gray-200 bg-white px-2 py-1 text-gray-900 dark:border-gray-600 dark:bg-gray-700 dark:text-white"
           />
         </td>
         <td className="px-3 py-1.5">
@@ -606,22 +606,22 @@ function BudgetItemRow({
         <td className="px-3 py-1.5 text-center">
           <div className="flex items-center justify-center gap-1">
             {item.isOneTime && (
-              <span className="inline-block rounded bg-purple-100 px-1 py-0.5 text-[9px] font-medium text-purple-800 dark:bg-purple-900/40 dark:text-purple-300">
+              <span className="inline-block rounded-sm bg-purple-100 px-1 py-0.5 text-[9px] font-medium text-purple-800 dark:bg-purple-900/40 dark:text-purple-300">
                 1x
               </span>
             )}
             {item.preTax && (
-              <span className="inline-block rounded bg-green-100 px-1 py-0.5 text-[9px] font-medium text-green-800 dark:bg-green-900/40 dark:text-green-300">
+              <span className="inline-block rounded-sm bg-green-100 px-1 py-0.5 text-[9px] font-medium text-green-800 dark:bg-green-900/40 dark:text-green-300">
                 pre-tax
               </span>
             )}
             {item.inflationOverride !== null && item.inflationOverride !== undefined && (
-              <span className="inline-block rounded bg-amber-100 px-1 py-0.5 text-[9px] font-medium text-amber-800 dark:bg-amber-900/40 dark:text-amber-300">
+              <span className="inline-block rounded-sm bg-amber-100 px-1 py-0.5 text-[9px] font-medium text-amber-800 dark:bg-amber-900/40 dark:text-amber-300">
                 {item.inflationOverride}%
               </span>
             )}
             {(item.startAge || item.endAge) && (
-              <span className="inline-block rounded bg-blue-100 px-1 py-0.5 text-[9px] font-medium text-blue-800 dark:bg-blue-900/40 dark:text-blue-300">
+              <span className="inline-block rounded-sm bg-blue-100 px-1 py-0.5 text-[9px] font-medium text-blue-800 dark:bg-blue-900/40 dark:text-blue-300">
                 {item.startAge ?? '?'}-{item.endAge ?? '?'}
               </span>
             )}
@@ -678,7 +678,7 @@ function BudgetItemRow({
                     type="checkbox"
                     checked={!!item.isOneTime}
                     onChange={(e) => onUpdate({ ...item, isOneTime: e.target.checked })}
-                    className="h-3 w-3 rounded border-gray-300 text-blue-600 dark:border-gray-600"
+                    className="h-3 w-3 rounded-sm border-gray-300 text-blue-600 dark:border-gray-600"
                   />
                   <label className="text-gray-600 dark:text-gray-400">One-time expense</label>
                 </div>
@@ -698,7 +698,7 @@ function BudgetItemRow({
                     type="checkbox"
                     checked={!!item.preTax}
                     onChange={(e) => onUpdate({ ...item, preTax: e.target.checked })}
-                    className="h-3 w-3 rounded border-gray-300 text-blue-600 dark:border-gray-600"
+                    className="h-3 w-3 rounded-sm border-gray-300 text-blue-600 dark:border-gray-600"
                   />
                   <label className="text-gray-600 dark:text-gray-400">Pre-tax (e.g. HSA medical)</label>
                 </div>
@@ -709,7 +709,7 @@ function BudgetItemRow({
                     type="checkbox"
                     checked={item.inflationOverride !== null && item.inflationOverride !== undefined}
                     onChange={(e) => onUpdate({ ...item, inflationOverride: e.target.checked ? 5 : null })}
-                    className="h-3 w-3 rounded border-gray-300 text-blue-600 dark:border-gray-600"
+                    className="h-3 w-3 rounded-sm border-gray-300 text-blue-600 dark:border-gray-600"
                   />
                   <label className="text-gray-600 dark:text-gray-400">Custom inflation</label>
                 </div>

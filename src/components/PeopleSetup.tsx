@@ -87,7 +87,7 @@ export default function PeopleSetup() {
 
       <div className="grid gap-6 md:grid-cols-2">
         {state.people.map((person) => (
-          <div key={person.id} className="rounded-lg border border-gray-200 bg-white p-6 shadow-sm dark:border-gray-700 dark:bg-gray-800">
+          <div key={person.id} className="rounded-lg border border-gray-200 bg-white p-6 shadow-xs dark:border-gray-700 dark:bg-gray-800">
             <div className="mb-4 flex items-center justify-between">
               <h3 className="font-medium dark:text-white">Person Details</h3>
               <button
@@ -104,7 +104,7 @@ export default function PeopleSetup() {
                   type="text"
                   value={person.name}
                   onChange={(e) => updatePerson({ ...person, name: e.target.value })}
-                  className="mt-1 block w-full rounded-md border border-gray-300 px-3 py-2 shadow-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500 dark:border-gray-600 dark:bg-gray-700 dark:text-white"
+                  className="mt-1 block w-full rounded-md border border-gray-300 px-3 py-2 shadow-xs focus:border-blue-500 focus:outline-hidden focus:ring-1 focus:ring-blue-500 dark:border-gray-600 dark:bg-gray-700 dark:text-white"
                 />
               </div>
               <div>

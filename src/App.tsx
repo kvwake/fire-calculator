@@ -41,7 +41,7 @@ export default function App() {
     <DarkModeContext.Provider value={dark}>
       <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
         {/* Header */}
-        <header className="border-b border-gray-200 bg-white shadow-sm dark:border-gray-700 dark:bg-gray-800">
+        <header className="border-b border-gray-200 bg-white shadow-xs dark:border-gray-700 dark:bg-gray-800">
           <div className="mx-auto max-w-7xl px-4 py-4 flex items-center justify-between">
             <div>
               <h1 className="text-2xl font-bold text-gray-900 dark:text-white">FIRE Calculator</h1>
@@ -51,7 +51,7 @@ export default function App() {
             </div>
             <button
               onClick={() => setDark(!dark)}
-              className="rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm font-medium text-gray-700 shadow-sm hover:bg-gray-50 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-300 dark:hover:bg-gray-600"
+              className="rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm font-medium text-gray-700 shadow-xs hover:bg-gray-50 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-300 dark:hover:bg-gray-600"
               aria-label="Toggle dark mode"
             >
               {dark ? 'Light' : 'Dark'}

@@ -366,7 +366,7 @@ export default function Methodology() {
 
 function Section({ title, children }: { title: string; children: React.ReactNode }) {
   return (
-    <div className="rounded-lg border border-gray-200 bg-white p-5 shadow-sm dark:border-gray-700 dark:bg-gray-800">
+    <div className="rounded-lg border border-gray-200 bg-white p-5 shadow-xs dark:border-gray-700 dark:bg-gray-800">
       <h3 className="text-sm font-semibold text-gray-900 dark:text-white mb-3">{title}</h3>
       <div className="text-sm leading-relaxed text-gray-600 dark:text-gray-400">
         {children}
@@ -385,7 +385,7 @@ function Badge({ color, children }: { color: string; children: React.ReactNode }
     orange: 'bg-orange-100 text-orange-800 dark:bg-orange-900/40 dark:text-orange-300',
   };
   return (
-    <span className={`inline-block rounded px-1.5 py-0.5 text-[10px] font-medium ${colors[color] ?? ''}`}>
+    <span className={`inline-block rounded-sm px-1.5 py-0.5 text-[10px] font-medium ${colors[color] ?? ''}`}>
       {children}
     </span>
   );

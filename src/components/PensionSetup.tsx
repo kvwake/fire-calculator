@@ -44,7 +44,7 @@ export default function PensionSetup() {
     dispatch({ type: 'REMOVE_PENSION', payload: id });
   };
 
-  const inputClass = 'mt-1 block w-full rounded-md border border-gray-300 px-3 py-2 shadow-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500 dark:border-gray-600 dark:bg-gray-700 dark:text-white';
+  const inputClass = 'mt-1 block w-full rounded-md border border-gray-300 px-3 py-2 shadow-xs focus:border-blue-500 focus:outline-hidden focus:ring-1 focus:ring-blue-500 dark:border-gray-600 dark:bg-gray-700 dark:text-white';
 
   return (
     <div className="space-y-4">
@@ -74,7 +74,7 @@ export default function PensionSetup() {
         return (
           <div
             key={pension.id}
-            className="rounded-lg border border-gray-200 bg-white p-4 shadow-sm dark:border-gray-700 dark:bg-gray-800"
+            className="rounded-lg border border-gray-200 bg-white p-4 shadow-xs dark:border-gray-700 dark:bg-gray-800"
           >
             <div className="mb-3 flex items-center justify-between">
               <div className="flex items-center gap-2">
@@ -82,7 +82,7 @@ export default function PensionSetup() {
                   type="checkbox"
                   checked={pension.enabled}
                   onChange={(e) => updatePension({ ...pension, enabled: e.target.checked })}
-                  className="h-4 w-4 rounded border-gray-300 text-blue-600 focus:ring-blue-500 dark:border-gray-600"
+                  className="h-4 w-4 rounded-sm border-gray-300 text-blue-600 focus:ring-blue-500 dark:border-gray-600"
                 />
                 <span className="font-medium dark:text-white">{pension.name || 'Pension'}</span>
                 <span className="text-xs text-gray-400 dark:text-gray-500">

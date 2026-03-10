@@ -197,7 +197,7 @@ export default function Results() {
         <p className="font-medium text-gray-900 dark:text-white text-xs mb-1">
           Income Sources
           {year.acaConstrainedWithdrawals && (
-            <Term t="aca subsidy"><span className="ml-1 inline-block rounded bg-green-100 px-1 py-0.5 text-[9px] font-medium text-green-800 dark:bg-green-900/40 dark:text-green-300">
+            <Term t="aca subsidy"><span className="ml-1 inline-block rounded-sm bg-green-100 px-1 py-0.5 text-[9px] font-medium text-green-800 dark:bg-green-900/40 dark:text-green-300">
               ACA optimized
             </span></Term>
           )}
@@ -252,12 +252,12 @@ export default function Results() {
                     ({account ? ACCOUNT_TYPE_LABELS[account.type] : ''})
                   </span>
                   {isSEPP && (
-                    <Term t="sepp"><span className="ml-1 inline-block rounded bg-amber-100 px-1 py-0.5 text-[9px] font-medium text-amber-800 dark:bg-amber-900/40 dark:text-amber-300">
+                    <Term t="sepp"><span className="ml-1 inline-block rounded-sm bg-amber-100 px-1 py-0.5 text-[9px] font-medium text-amber-800 dark:bg-amber-900/40 dark:text-amber-300">
                       SEPP
                     </span></Term>
                   )}
                   {isRMD && (
-                    <Term t="rmd"><span className="ml-1 inline-block rounded bg-purple-100 px-1 py-0.5 text-[9px] font-medium text-purple-800 dark:bg-purple-900/40 dark:text-purple-300">
+                    <Term t="rmd"><span className="ml-1 inline-block rounded-sm bg-purple-100 px-1 py-0.5 text-[9px] font-medium text-purple-800 dark:bg-purple-900/40 dark:text-purple-300">
                       RMD
                     </span></Term>
                   )}
@@ -283,7 +283,7 @@ export default function Results() {
                 <div key={`rc-${accountId}`} className="flex justify-between text-xs">
                   <span className="text-gray-600 dark:text-gray-400 truncate mr-2">
                     {account?.name ?? 'Unknown'}
-                    <span className="ml-1 inline-block rounded bg-indigo-100 px-1 py-0.5 text-[9px] font-medium text-indigo-800 dark:bg-indigo-900/40 dark:text-indigo-300">
+                    <span className="ml-1 inline-block rounded-sm bg-indigo-100 px-1 py-0.5 text-[9px] font-medium text-indigo-800 dark:bg-indigo-900/40 dark:text-indigo-300">
                       → Roth
                     </span>
                   </span>
@@ -426,7 +426,7 @@ export default function Results() {
       {/* removed — methodology is now on its own tab */}
 
       {/* Retirement Year Slider */}
-      <div className="rounded-lg border border-gray-200 bg-white p-4 shadow-sm dark:border-gray-700 dark:bg-gray-800">
+      <div className="rounded-lg border border-gray-200 bg-white p-4 shadow-xs dark:border-gray-700 dark:bg-gray-800">
         <div className="flex items-center gap-4">
           <label className="text-sm font-medium text-gray-700 dark:text-gray-300 whitespace-nowrap">
             Retirement Year
@@ -449,7 +449,7 @@ export default function Results() {
             return `${p.name}: age ${ageAt}`;
           }).join(' / ')}
           {hasSEPP && (
-            <Term t="sepp"><span className="ml-2 inline-block rounded bg-amber-100 px-1.5 py-0.5 text-[10px] font-medium text-amber-800 dark:bg-amber-900/40 dark:text-amber-300">
+            <Term t="sepp"><span className="ml-2 inline-block rounded-sm bg-amber-100 px-1.5 py-0.5 text-[10px] font-medium text-amber-800 dark:bg-amber-900/40 dark:text-amber-300">
               SEPP/72(t) active for early access
             </span></Term>
           )}
@@ -543,7 +543,7 @@ export default function Results() {
       )}
 
       {/* Portfolio Growth Chart */}
-      <div className="rounded-lg border border-gray-200 bg-white p-6 shadow-sm dark:border-gray-700 dark:bg-gray-800">
+      <div className="rounded-lg border border-gray-200 bg-white p-6 shadow-xs dark:border-gray-700 dark:bg-gray-800">
         <h3 className="mb-4 text-lg font-medium dark:text-white">
           Portfolio Over Time
           {secondPerson && (
@@ -563,7 +563,7 @@ export default function Results() {
             />
             <YAxis tickFormatter={formatCompact} tick={{ fill: axisTickFill }} />
             <Tooltip
-              formatter={(value: number) => formatCurrency(value)}
+              formatter={(value) => formatCurrency(Number(value))}
               labelFormatter={(label) => formatChartTooltipLabel(Number(label))}
               contentStyle={tooltipStyle}
             />
@@ -584,7 +584,7 @@ export default function Results() {
       </div>
 
       {/* Simulation Analysis Mode */}
-      <div className="rounded-lg border border-gray-200 bg-white p-6 shadow-sm dark:border-gray-700 dark:bg-gray-800">
+      <div className="rounded-lg border border-gray-200 bg-white p-6 shadow-xs dark:border-gray-700 dark:bg-gray-800">
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mb-4">
           <h3 className="text-lg font-medium dark:text-white">Risk Analysis</h3>
           <div className="flex rounded-lg border border-gray-200 dark:border-gray-600 overflow-hidden">
@@ -640,7 +640,7 @@ export default function Results() {
 
       {/* Income/Tax/Spending Chart */}
       {retirementYears.length > 0 && (
-        <div className="rounded-lg border border-gray-200 bg-white p-6 shadow-sm dark:border-gray-700 dark:bg-gray-800">
+        <div className="rounded-lg border border-gray-200 bg-white p-6 shadow-xs dark:border-gray-700 dark:bg-gray-800">
           <h3 className="mb-4 text-lg font-medium dark:text-white">
             Retirement Income & Taxes
             {secondPerson && (
@@ -660,7 +660,7 @@ export default function Results() {
               />
               <YAxis tickFormatter={formatCompact} tick={{ fill: axisTickFill }} />
               <Tooltip
-                formatter={(value: number) => formatCurrency(Math.abs(value))}
+                formatter={(value) => formatCurrency(Math.abs(Number(value)))}
                 labelFormatter={(label) => formatChartTooltipLabel(Number(label))}
                 contentStyle={tooltipStyle}
               />
@@ -687,7 +687,7 @@ export default function Results() {
       />
 
       {/* Account Details at Key Ages */}
-      <div className="rounded-lg border border-gray-200 bg-white p-6 shadow-sm dark:border-gray-700 dark:bg-gray-800">
+      <div className="rounded-lg border border-gray-200 bg-white p-6 shadow-xs dark:border-gray-700 dark:bg-gray-800">
         <h3 className="mb-4 text-lg font-medium dark:text-white">Account Balances at Key Ages</h3>
         <div className="overflow-x-auto">
           <table className="w-full text-sm">
@@ -906,8 +906,8 @@ function YearDetailPanel({
                   <div className={rowClass}>
                     <span className={labelClass}>
                       {account?.name ?? 'Unknown'}
-                      {isSEPP && <Term t="sepp"><span className="ml-1 rounded bg-amber-100 px-1 text-[9px] font-medium text-amber-800 dark:bg-amber-900/40 dark:text-amber-300">SEPP</span></Term>}
-                      {isRMD && <Term t="rmd"><span className="ml-1 rounded bg-purple-100 px-1 text-[9px] font-medium text-purple-800 dark:bg-purple-900/40 dark:text-purple-300">RMD</span></Term>}
+                      {isSEPP && <Term t="sepp"><span className="ml-1 rounded-sm bg-amber-100 px-1 text-[9px] font-medium text-amber-800 dark:bg-amber-900/40 dark:text-amber-300">SEPP</span></Term>}
+                      {isRMD && <Term t="rmd"><span className="ml-1 rounded-sm bg-purple-100 px-1 text-[9px] font-medium text-purple-800 dark:bg-purple-900/40 dark:text-purple-300">RMD</span></Term>}
                     </span>
                     <span className={valueClass}>{formatCurrency(amount)}</span>
                   </div>
@@ -1219,7 +1219,7 @@ function MonteCarloPanel({
           <select
             value={trials}
             onChange={(e) => onTrialsChange(parseInt(e.target.value))}
-            className="rounded border border-gray-300 px-2 py-1 text-xs dark:border-gray-600 dark:bg-gray-700 dark:text-white"
+            className="rounded-sm border border-gray-300 px-2 py-1 text-xs dark:border-gray-600 dark:bg-gray-700 dark:text-white"
           >
             <option value={500}>500</option>
             <option value={1000}>1,000</option>
@@ -1427,7 +1427,7 @@ function YearByYearTable({
   };
 
   return (
-    <div className="rounded-lg border border-gray-200 bg-white shadow-sm dark:border-gray-700 dark:bg-gray-800">
+    <div className="rounded-lg border border-gray-200 bg-white shadow-xs dark:border-gray-700 dark:bg-gray-800">
       <h3 className="border-b border-gray-200 p-4 text-lg font-medium dark:border-gray-700 dark:text-white">
         Year-by-Year Breakdown
         <span className="ml-2 text-xs font-normal text-gray-400 dark:text-gray-500">Click a row to expand</span>
@@ -1493,22 +1493,22 @@ function YearByYearTable({
                         {year.phase === 'retirement' ? 'Retired' : 'Working'}
                       </span>
                       {yearHasSEPP && (
-                        <Term t="sepp"><span className="ml-1 inline-block rounded bg-amber-100 px-1 py-0.5 text-[9px] font-medium text-amber-800 dark:bg-amber-900/40 dark:text-amber-300">
+                        <Term t="sepp"><span className="ml-1 inline-block rounded-sm bg-amber-100 px-1 py-0.5 text-[9px] font-medium text-amber-800 dark:bg-amber-900/40 dark:text-amber-300">
                           SEPP
                         </span></Term>
                       )}
                       {yearHasRMD && (
-                        <Term t="rmd"><span className="ml-1 inline-block rounded bg-purple-100 px-1 py-0.5 text-[9px] font-medium text-purple-800 dark:bg-purple-900/40 dark:text-purple-300">
+                        <Term t="rmd"><span className="ml-1 inline-block rounded-sm bg-purple-100 px-1 py-0.5 text-[9px] font-medium text-purple-800 dark:bg-purple-900/40 dark:text-purple-300">
                           RMD
                         </span></Term>
                       )}
                       {year.acaConstrainedWithdrawals && (
-                        <Term t="aca subsidy"><span className="ml-1 inline-block rounded bg-green-100 px-1 py-0.5 text-[9px] font-medium text-green-800 dark:bg-green-900/40 dark:text-green-300">
+                        <Term t="aca subsidy"><span className="ml-1 inline-block rounded-sm bg-green-100 px-1 py-0.5 text-[9px] font-medium text-green-800 dark:bg-green-900/40 dark:text-green-300">
                           ACA
                         </span></Term>
                       )}
                       {year.inAusterity && (
-                        <span className="ml-1 inline-block rounded bg-orange-100 px-1 py-0.5 text-[9px] font-medium text-orange-800 dark:bg-orange-900/40 dark:text-orange-300" title="Spending reduced — cash below floor">
+                        <span className="ml-1 inline-block rounded-sm bg-orange-100 px-1 py-0.5 text-[9px] font-medium text-orange-800 dark:bg-orange-900/40 dark:text-orange-300" title="Spending reduced — cash below floor">
                           LEAN
                         </span>
                       )}
@@ -1696,7 +1696,7 @@ function ScenarioComparison({
   const lineColors = ['#3b82f6', '#ef4444', '#10b981', '#f59e0b'];
 
   return (
-    <div className="rounded-lg border border-gray-200 bg-white shadow-sm dark:border-gray-700 dark:bg-gray-800">
+    <div className="rounded-lg border border-gray-200 bg-white shadow-xs dark:border-gray-700 dark:bg-gray-800">
       <button
         onClick={() => { setExpanded(!expanded); if (!expanded && scenarios.length === 0) addScenario(); }}
         className="flex w-full items-center justify-between p-4 text-left"
@@ -1712,21 +1712,21 @@ function ScenarioComparison({
           {/* Scenario pickers */}
           <div className="mt-3 flex flex-wrap items-center gap-3">
             <div className="flex items-center gap-1">
-              <span className="inline-block w-3 h-3 rounded" style={{ backgroundColor: lineColors[0] }} />
+              <span className="inline-block w-3 h-3 rounded-sm" style={{ backgroundColor: lineColors[0] }} />
               <span className="text-xs font-medium text-gray-600 dark:text-gray-400">
                 {currentRetirementYear} (current)
               </span>
             </div>
             {scenarios.map((year, i) => (
               <div key={i} className="flex items-center gap-1">
-                <span className="inline-block w-3 h-3 rounded" style={{ backgroundColor: lineColors[i + 1] }} />
+                <span className="inline-block w-3 h-3 rounded-sm" style={{ backgroundColor: lineColors[i + 1] }} />
                 <input
                   type="number"
                   value={year}
                   onChange={(e) => updateScenario(i, parseInt(e.target.value) || currentYear)}
                   min={currentYear}
                   max={currentYear + 40}
-                  className="w-20 rounded border border-gray-300 px-2 py-0.5 text-xs dark:border-gray-600 dark:bg-gray-700 dark:text-white"
+                  className="w-20 rounded-sm border border-gray-300 px-2 py-0.5 text-xs dark:border-gray-600 dark:bg-gray-700 dark:text-white"
                 />
                 <button
                   onClick={() => removeScenario(year)}
@@ -1826,7 +1826,7 @@ function ScenarioComparison({
                   />
                   <YAxis tickFormatter={formatCompact} tick={{ fill: axisTickFill }} />
                   <Tooltip
-                    formatter={(value: number, name: string) => [formatCurrency(value), name]}
+                    formatter={(value, name) => [formatCurrency(Number(value)), String(name)]}
                     contentStyle={tooltipStyle}
                     labelFormatter={(age) => `Age ${age}`}
                   />
@@ -1870,7 +1870,7 @@ function SummaryCard({
   sublabel?: string;
   variant?: 'blue' | 'red';
 }) {
-  const base = 'rounded-lg border p-4 shadow-sm';
+  const base = 'rounded-lg border p-4 shadow-xs';
   const colorClass =
     variant === 'blue'
       ? 'border-blue-300 bg-blue-50 dark:border-blue-700 dark:bg-blue-900/20'

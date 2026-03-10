@@ -79,14 +79,14 @@ export default function SettingsPanel() {
     }
   };
 
-  const inputClass = 'mt-1 block w-full rounded-md border border-gray-300 px-3 py-2 shadow-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500 dark:border-gray-600 dark:bg-gray-700 dark:text-white';
+  const inputClass = 'mt-1 block w-full rounded-md border border-gray-300 px-3 py-2 shadow-xs focus:border-blue-500 focus:outline-hidden focus:ring-1 focus:ring-blue-500 dark:border-gray-600 dark:bg-gray-700 dark:text-white';
 
   return (
     <div className="space-y-8">
       <h2 className="text-xl font-semibold dark:text-white">Settings</h2>
 
       <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
-        <div className="rounded-lg border border-gray-200 bg-white p-4 shadow-sm dark:border-gray-700 dark:bg-gray-800">
+        <div className="rounded-lg border border-gray-200 bg-white p-4 shadow-xs dark:border-gray-700 dark:bg-gray-800">
           <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
             Retirement Year
           </label>
@@ -107,7 +107,7 @@ export default function SettingsPanel() {
           )}
         </div>
 
-        <div className="rounded-lg border border-gray-200 bg-white p-4 shadow-sm dark:border-gray-700 dark:bg-gray-800">
+        <div className="rounded-lg border border-gray-200 bg-white p-4 shadow-xs dark:border-gray-700 dark:bg-gray-800">
           <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">State of Residence</label>
           <select
             value={state.settings.state}
@@ -122,7 +122,7 @@ export default function SettingsPanel() {
           </select>
         </div>
 
-        <div className="rounded-lg border border-gray-200 bg-white p-4 shadow-sm dark:border-gray-700 dark:bg-gray-800">
+        <div className="rounded-lg border border-gray-200 bg-white p-4 shadow-xs dark:border-gray-700 dark:bg-gray-800">
           <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">Filing Status</label>
           <select
             value={state.settings.filingStatus}
@@ -136,7 +136,7 @@ export default function SettingsPanel() {
           </select>
         </div>
 
-        <div className="rounded-lg border border-gray-200 bg-white p-4 shadow-sm dark:border-gray-700 dark:bg-gray-800">
+        <div className="rounded-lg border border-gray-200 bg-white p-4 shadow-xs dark:border-gray-700 dark:bg-gray-800">
           <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">Inflation Rate (%)</label>
           <NumberInput
             value={state.settings.inflationRate}
@@ -153,7 +153,7 @@ export default function SettingsPanel() {
           </p>
         </div>
 
-        <div className="rounded-lg border border-gray-200 bg-white p-4 shadow-sm dark:border-gray-700 dark:bg-gray-800">
+        <div className="rounded-lg border border-gray-200 bg-white p-4 shadow-xs dark:border-gray-700 dark:bg-gray-800">
           <h4 className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-3">
             Cash Buffer &amp; Floor
           </h4>
@@ -202,7 +202,7 @@ export default function SettingsPanel() {
                   onChange={(e) =>
                     updateSettings({ austerityReduction: e.target.checked ? 25 : null })
                   }
-                  className="h-4 w-4 rounded border-gray-300 text-blue-600 focus:ring-blue-500 dark:border-gray-600"
+                  className="h-4 w-4 rounded-sm border-gray-300 text-blue-600 focus:ring-blue-500 dark:border-gray-600"
                 />
                 <label htmlFor="austerity" className="text-sm font-medium text-gray-700 dark:text-gray-300">
                   Austerity Mode
@@ -228,7 +228,7 @@ export default function SettingsPanel() {
           </div>
         </div>
 
-        <div className="rounded-lg border border-gray-200 bg-white p-4 shadow-sm dark:border-gray-700 dark:bg-gray-800">
+        <div className="rounded-lg border border-gray-200 bg-white p-4 shadow-xs dark:border-gray-700 dark:bg-gray-800">
           <div className="flex items-center gap-2 mb-3">
             <input
               type="checkbox"
@@ -242,7 +242,7 @@ export default function SettingsPanel() {
                   },
                 })
               }
-              className="h-4 w-4 rounded border-gray-300 text-blue-600 focus:ring-blue-500 dark:border-gray-600"
+              className="h-4 w-4 rounded-sm border-gray-300 text-blue-600 focus:ring-blue-500 dark:border-gray-600"
             />
             <label htmlFor="glidePath" className="text-sm font-medium text-gray-700 dark:text-gray-300">
               Asset Allocation Glide Path
@@ -300,7 +300,7 @@ export default function SettingsPanel() {
           )}
         </div>
 
-        <div className="rounded-lg border border-gray-200 bg-white p-4 shadow-sm dark:border-gray-700 dark:bg-gray-800">
+        <div className="rounded-lg border border-gray-200 bg-white p-4 shadow-xs dark:border-gray-700 dark:bg-gray-800">
           <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
             Roth Conversion Strategy
           </label>
@@ -324,7 +324,7 @@ export default function SettingsPanel() {
           </p>
         </div>
 
-        <div className="rounded-lg border border-gray-200 bg-white p-4 shadow-sm dark:border-gray-700 dark:bg-gray-800">
+        <div className="rounded-lg border border-gray-200 bg-white p-4 shadow-xs dark:border-gray-700 dark:bg-gray-800">
           <div className="flex items-center gap-2">
             <input
               type="checkbox"
@@ -333,7 +333,7 @@ export default function SettingsPanel() {
               onChange={(e) =>
                 updateSettings({ capitalGainsHarvesting: e.target.checked })
               }
-              className="h-4 w-4 rounded border-gray-300 text-blue-600 focus:ring-blue-500 dark:border-gray-600"
+              className="h-4 w-4 rounded-sm border-gray-300 text-blue-600 focus:ring-blue-500 dark:border-gray-600"
             />
             <label htmlFor="cap-gains-harvesting" className="text-sm font-medium text-gray-700 dark:text-gray-300">
               Capital Gains Harvesting
@@ -347,7 +347,7 @@ export default function SettingsPanel() {
           </p>
         </div>
 
-        <div className="rounded-lg border border-gray-200 bg-white p-4 shadow-sm dark:border-gray-700 dark:bg-gray-800">
+        <div className="rounded-lg border border-gray-200 bg-white p-4 shadow-xs dark:border-gray-700 dark:bg-gray-800">
           <div className="flex items-center gap-2">
             <input
               type="checkbox"
@@ -381,7 +381,7 @@ export default function SettingsPanel() {
                   }
                 }
               }}
-              className="h-4 w-4 rounded border-gray-300 text-blue-600 focus:ring-blue-500 dark:border-gray-600"
+              className="h-4 w-4 rounded-sm border-gray-300 text-blue-600 focus:ring-blue-500 dark:border-gray-600"
             />
             <label htmlFor="hsa-contrib-retirement" className="text-sm font-medium text-gray-700 dark:text-gray-300">
               HSA Contributions in Retirement
@@ -401,7 +401,7 @@ export default function SettingsPanel() {
             </p>
           )}
         </div>
-        <div className="rounded-lg border border-gray-200 bg-white p-4 shadow-sm dark:border-gray-700 dark:bg-gray-800">
+        <div className="rounded-lg border border-gray-200 bg-white p-4 shadow-xs dark:border-gray-700 dark:bg-gray-800">
           <h4 className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-3">
             Withdrawal Rate Guardrails
           </h4>
@@ -420,7 +420,7 @@ export default function SettingsPanel() {
                   onChange={(e) =>
                     updateSettings({ withdrawalSoftLimit: e.target.checked ? 4 : null })
                   }
-                  className="h-4 w-4 rounded border-gray-300 text-blue-600 focus:ring-blue-500 dark:border-gray-600"
+                  className="h-4 w-4 rounded-sm border-gray-300 text-blue-600 focus:ring-blue-500 dark:border-gray-600"
                 />
                 <label htmlFor="soft-limit" className="text-sm font-medium text-gray-700 dark:text-gray-300">
                   Soft Limit (warning)
@@ -448,7 +448,7 @@ export default function SettingsPanel() {
                   onChange={(e) =>
                     updateSettings({ withdrawalHardLimit: e.target.checked ? 5 : null })
                   }
-                  className="h-4 w-4 rounded border-gray-300 text-blue-600 focus:ring-blue-500 dark:border-gray-600"
+                  className="h-4 w-4 rounded-sm border-gray-300 text-blue-600 focus:ring-blue-500 dark:border-gray-600"
                 />
                 <label htmlFor="hard-limit" className="text-sm font-medium text-gray-700 dark:text-gray-300">
                   Hard Limit (cap withdrawals)
@@ -482,12 +482,12 @@ export default function SettingsPanel() {
         <div className="flex gap-4">
           <button
             onClick={handleExport}
-            className="rounded-lg border border-gray-300 bg-white px-4 py-2 text-sm font-medium text-gray-700 shadow-sm hover:bg-gray-50 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-300 dark:hover:bg-gray-600"
+            className="rounded-lg border border-gray-300 bg-white px-4 py-2 text-sm font-medium text-gray-700 shadow-xs hover:bg-gray-50 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-300 dark:hover:bg-gray-600"
           >
             Export Data
           </button>
 
-          <label className="cursor-pointer rounded-lg border border-gray-300 bg-white px-4 py-2 text-sm font-medium text-gray-700 shadow-sm hover:bg-gray-50 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-300 dark:hover:bg-gray-600">
+          <label className="cursor-pointer rounded-lg border border-gray-300 bg-white px-4 py-2 text-sm font-medium text-gray-700 shadow-xs hover:bg-gray-50 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-300 dark:hover:bg-gray-600">
             Import Data
             <input
               ref={fileInputRef}
@@ -500,7 +500,7 @@ export default function SettingsPanel() {
 
           <button
             onClick={handleReset}
-            className="rounded-lg border border-red-300 bg-white px-4 py-2 text-sm font-medium text-red-700 shadow-sm hover:bg-red-50 dark:border-red-600 dark:bg-gray-700 dark:text-red-400 dark:hover:bg-gray-600"
+            className="rounded-lg border border-red-300 bg-white px-4 py-2 text-sm font-medium text-red-700 shadow-xs hover:bg-red-50 dark:border-red-600 dark:bg-gray-700 dark:text-red-400 dark:hover:bg-gray-600"
           >
             Reset All Data
           </button>
