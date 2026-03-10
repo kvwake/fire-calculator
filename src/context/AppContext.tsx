@@ -206,23 +206,36 @@ export function AppProvider({ children }: { children: ReactNode }) {
 
   const importData = (json: string): boolean => {
     try {
+      // Reject excessively large payloads (1 MB)
+      if (json.length > 1_000_000) return false;
       const parsed = JSON.parse(json);
       // Basic schema validation: ensure critical fields are arrays/objects
       if (parsed && typeof parsed === 'object' &&
           (!parsed.people || Array.isArray(parsed.people)) &&
           (!parsed.accounts || Array.isArray(parsed.accounts))) {
+        const safeStr = (v: unknown, maxLen = 200): string =>
+          typeof v === 'string' ? v.slice(0, maxLen) : '';
+        const safeNum = (v: unknown, fallback: number): number =>
+          typeof v === 'number' && isFinite(v) ? v : fallback;
+        // Sanitize people names
+        const people = (parsed.people ?? []).map((p: Record<string, unknown>) => ({
+          ...p,
+          name: safeStr(p.name, 100),
+        }));
         // Ensure accounts have required numeric fields
         const accounts = (parsed.accounts ?? []).map((a: Record<string, unknown>) => ({
           dividendYield: 0,
           ...a,
-          balance: typeof a.balance === 'number' ? a.balance : 0,
-          expectedReturn: typeof a.expectedReturn === 'number' ? a.expectedReturn : 7,
+          name: safeStr(a.name, 100),
+          balance: safeNum(a.balance, 0),
+          expectedReturn: safeNum(a.expectedReturn, 7),
         }));
         dispatch({
           type: 'SET_STATE',
           payload: {
             ...defaultState,
             ...parsed,
+            people,
             accounts,
             settings: {
               ...defaultState.settings,
