@@ -609,6 +609,336 @@ describe('Simulation Integration Tests', () => {
     });
   });
 
+  describe('Glide path', () => {
+    it('glide path enabled vs disabled produces different growth patterns', () => {
+      const baseAccounts = [
+        makeAccount({ id: 'roth', type: 'roth', balance: 1000000, expectedReturn: 10 }),
+        makeAccount({ id: 'cash', type: 'cash', balance: 100000, expectedReturn: 0 }),
+      ];
+      const overrides = {
+        equity: Array(35).fill(0.10),
+        bonds: Array(35).fill(0.02),
+      };
+
+      const stateNoGlide = makeState({
+        age: 55,
+        lifeExpectancy: 85,
+        spending: 40000,
+        accounts: baseAccounts.map(a => ({ ...a })),
+        settings: {
+          inflationRate: 0,
+          glidePath: { enabled: false, safeYearsStart: 7, safeYearsEnd: 3 },
+        },
+      });
+
+      const stateWithGlide = makeState({
+        age: 55,
+        lifeExpectancy: 85,
+        spending: 40000,
+        accounts: baseAccounts.map(a => ({ ...a })),
+        settings: {
+          inflationRate: 0,
+          glidePath: { enabled: true, safeYearsStart: 7, safeYearsEnd: 3 },
+        },
+      });
+
+      const resultNoGlide = runSimulation(stateNoGlide, overrides);
+      const resultWithGlide = runSimulation(stateWithGlide, overrides);
+
+      // With glide path, early years have more bonds (lower returns) so growth differs
+      const noGlideEnd = resultNoGlide.years[resultNoGlide.years.length - 1].totalPortfolioValue;
+      const glideEnd = resultWithGlide.years[resultWithGlide.years.length - 1].totalPortfolioValue;
+      // They should differ since glide path shifts allocation
+      expect(noGlideEnd).not.toBeCloseTo(glideEnd, -2);
+    });
+
+    it('safeYearsStart/safeYearsEnd affect asset allocation', () => {
+      const baseAccounts = [
+        makeAccount({ id: 'roth', type: 'roth', balance: 1000000, expectedReturn: 10 }),
+        makeAccount({ id: 'cash', type: 'cash', balance: 50000, expectedReturn: 0 }),
+      ];
+      const overrides = {
+        equity: Array(35).fill(0.10),
+        bonds: Array(35).fill(0.02),
+      };
+
+      // Conservative: many safe years (more bonds)
+      const stateConservative = makeState({
+        age: 55,
+        lifeExpectancy: 85,
+        spending: 40000,
+        accounts: baseAccounts.map(a => ({ ...a })),
+        settings: {
+          inflationRate: 0,
+          glidePath: { enabled: true, safeYearsStart: 15, safeYearsEnd: 10 },
+        },
+      });
+
+      // Aggressive: few safe years (more equities)
+      const stateAggressive = makeState({
+        age: 55,
+        lifeExpectancy: 85,
+        spending: 40000,
+        accounts: baseAccounts.map(a => ({ ...a })),
+        settings: {
+          inflationRate: 0,
+          glidePath: { enabled: true, safeYearsStart: 2, safeYearsEnd: 1 },
+        },
+      });
+
+      const conservative = runSimulation(stateConservative, overrides);
+      const aggressive = runSimulation(stateAggressive, overrides);
+
+      // More safe years = more bond allocation = lower growth = lower final balance
+      const conservativeEnd = conservative.years[conservative.years.length - 1].totalPortfolioValue;
+      const aggressiveEnd = aggressive.years[aggressive.years.length - 1].totalPortfolioValue;
+      expect(aggressiveEnd).toBeGreaterThan(conservativeEnd);
+    });
+  });
+
+  describe('Austerity mode', () => {
+    it('reduces spending when cash drops below floor', () => {
+      // Set up scenario: small cash, big spending, austerity enabled
+      const state = makeState({
+        age: 60,
+        lifeExpectancy: 75,
+        spending: 60000,
+        accounts: [
+          makeAccount({ id: 'roth', type: 'roth', balance: 500000, expectedReturn: 0 }),
+          makeAccount({ id: 'cash', type: 'cash', balance: 30000, expectedReturn: 0 }),
+        ],
+        settings: {
+          inflationRate: 0,
+          cashFloorYears: 1, // floor = $60k
+          cashYearsOfExpenses: 2, // buffer target = $120k
+          austerityReduction: 20, // 20% reduction
+        },
+      });
+
+      const result = runSimulation(state);
+      const retYears = result.years.filter(y => y.phase === 'retirement');
+
+      // Cash starts at $30k which is below floor ($60k), so first year should be in austerity
+      const firstYear = retYears[0];
+      expect(firstYear.inAusterity).toBe(true);
+      // Spending should be reduced: $60k * 0.80 = $48k
+      expect(firstYear.netSpending).toBeLessThan(60000);
+    });
+
+    it('sets inAusterity flag correctly on year results', () => {
+      const state = makeState({
+        age: 60,
+        lifeExpectancy: 75,
+        spending: 40000,
+        accounts: [
+          makeAccount({ id: 'roth', type: 'roth', balance: 800000, expectedReturn: 0 }),
+          makeAccount({ id: 'cash', type: 'cash', balance: 20000, expectedReturn: 0 }),
+        ],
+        settings: {
+          inflationRate: 0,
+          cashFloorYears: 1, // floor = $40k
+          cashYearsOfExpenses: 2, // buffer = $80k
+          austerityReduction: 25,
+        },
+      });
+
+      const result = runSimulation(state);
+      const retYears = result.years.filter(y => y.phase === 'retirement');
+
+      // Cash $20k < floor $40k so austerity starts
+      expect(retYears[0].inAusterity).toBe(true);
+
+      // Every year should have the flag as a boolean
+      for (const y of retYears) {
+        expect(typeof y.inAusterity).toBe('boolean');
+      }
+    });
+
+    it('austerity reduces spending compared to non-austerity scenario', () => {
+      // Compare two identical scenarios: one with austerity, one without.
+      // Both start with low cash, but austerity version should spend less.
+      const baseOpts = {
+        age: 60,
+        lifeExpectancy: 75,
+        spending: 50000,
+        accounts: [
+          makeAccount({ id: 'roth', type: 'roth', balance: 500000, expectedReturn: 0 }),
+          makeAccount({ id: 'cash', type: 'cash', balance: 10000, expectedReturn: 0 }),
+        ],
+      };
+
+      const stateWithAusterity = makeState({
+        ...baseOpts,
+        accounts: baseOpts.accounts.map(a => ({ ...a })),
+        settings: {
+          inflationRate: 0,
+          cashFloorYears: 1,
+          cashYearsOfExpenses: 2,
+          austerityReduction: 25, // 25% reduction
+        },
+      });
+
+      const stateNoAusterity = makeState({
+        ...baseOpts,
+        accounts: baseOpts.accounts.map(a => ({ ...a })),
+        settings: {
+          inflationRate: 0,
+          cashFloorYears: 1,
+          cashYearsOfExpenses: 2,
+          austerityReduction: null,
+        },
+      });
+
+      const resultWith = runSimulation(stateWithAusterity);
+      const resultWithout = runSimulation(stateNoAusterity);
+
+      const retWith = resultWith.years.filter(y => y.phase === 'retirement');
+      const retWithout = resultWithout.years.filter(y => y.phase === 'retirement');
+
+      // The austerity scenario should have lower total spending in austerity years
+      const austerityYears = retWith.filter(y => y.inAusterity);
+      expect(austerityYears.length).toBeGreaterThan(0);
+
+      // In austerity years, netSpending should be 25% less than normal
+      // (baseSpending stays at the full amount; netSpending reflects the reduction)
+      for (const y of austerityYears) {
+        expect(y.netSpending).toBeLessThan(50000);
+        expect(y.netSpending).toBeCloseTo(50000 * 0.75, -2);
+        // baseSpending remains the unreduced phase amount
+        expect(y.baseSpending).toBeCloseTo(50000, -2);
+      }
+
+      // Without austerity, no year has the flag set
+      for (const y of retWithout) {
+        expect(y.inAusterity).toBe(false);
+      }
+    });
+
+    it('no austerity when austerityReduction is null', () => {
+      const state = makeState({
+        age: 60,
+        lifeExpectancy: 70,
+        spending: 50000,
+        accounts: [
+          makeAccount({ id: 'roth', type: 'roth', balance: 500000, expectedReturn: 0 }),
+          makeAccount({ id: 'cash', type: 'cash', balance: 10000, expectedReturn: 0 }),
+        ],
+        settings: {
+          inflationRate: 0,
+          cashFloorYears: 1,
+          austerityReduction: null,
+        },
+      });
+
+      const result = runSimulation(state);
+      const retYears = result.years.filter(y => y.phase === 'retirement');
+
+      // No austerity flag should ever be set
+      for (const y of retYears) {
+        expect(y.inAusterity).toBe(false);
+      }
+    });
+  });
+
+  describe('Early withdrawal penalty', () => {
+    it('applies 10% penalty for traditional withdrawal before 59.5 without SEPP', () => {
+      // Person age 50, only traditional + minimal cash, no SEPP.
+      // Cash is tiny so it depletes quickly, forcing traditional withdrawals.
+      // The optimizer avoids locked traditional, but when no other source remains it must use it.
+      const state = makeState({
+        age: 50,
+        lifeExpectancy: 65,
+        spending: 40000,
+        accounts: [
+          makeAccount({ id: 'trad', type: 'traditional', balance: 800000, seppEnabled: false }),
+          makeAccount({ id: 'cash', type: 'cash', balance: 5000, expectedReturn: 0 }),
+        ],
+        settings: { inflationRate: 0, cashYearsOfExpenses: 0, cashFloorYears: 0 },
+      });
+
+      const result = runSimulation(state);
+      const retYears = result.years.filter(y => y.phase === 'retirement');
+
+      // With only $5k cash and $40k spending, trad must be tapped.
+      // Before age 59, this should incur early withdrawal penalty.
+      const earlyYears = retYears.filter(y => y.ages['p1'] < 59);
+      const hasEarlyPenalty = earlyYears.some(y => y.earlyWithdrawalPenalty > 0);
+      expect(hasEarlyPenalty).toBe(true);
+
+      // The penalty annotation should be present on penalty years
+      for (const y of earlyYears) {
+        if (y.earlyWithdrawalPenalty > 0) {
+          const hasWarning = y.annotations.some(a => a.includes('EARLY WITHDRAWAL PENALTY'));
+          expect(hasWarning).toBe(true);
+        }
+      }
+    });
+
+    it('no penalty when SEPP is enabled', () => {
+      const state = makeState({
+        age: 50,
+        lifeExpectancy: 65,
+        spending: 30000,
+        accounts: [
+          makeAccount({ id: 'trad', type: 'traditional', balance: 800000, seppEnabled: true }),
+          makeAccount({ id: 'cash', type: 'cash', balance: 50000, expectedReturn: 0 }),
+        ],
+        settings: { inflationRate: 0 },
+      });
+
+      const result = runSimulation(state);
+      const retYears = result.years.filter(y => y.phase === 'retirement');
+
+      // SEPP allows penalty-free access, so no early withdrawal penalty
+      const earlyYears = retYears.filter(y => y.ages['p1'] < 59);
+      for (const y of earlyYears) {
+        expect(y.earlyWithdrawalPenalty).toBe(0);
+      }
+    });
+
+    it('no penalty after age 59.5', () => {
+      const state = makeState({
+        age: 60,
+        lifeExpectancy: 75,
+        spending: 40000,
+        accounts: [
+          makeAccount({ id: 'trad', type: 'traditional', balance: 800000, seppEnabled: false }),
+          makeAccount({ id: 'cash', type: 'cash', balance: 50000, expectedReturn: 0 }),
+        ],
+        settings: { inflationRate: 0 },
+      });
+
+      const result = runSimulation(state);
+      const retYears = result.years.filter(y => y.phase === 'retirement');
+
+      // All years should be penalty-free (age >= 60)
+      for (const y of retYears) {
+        expect(y.earlyWithdrawalPenalty).toBe(0);
+      }
+    });
+
+    it('457b accounts never have early withdrawal penalty', () => {
+      const state = makeState({
+        age: 50,
+        lifeExpectancy: 65,
+        spending: 30000,
+        accounts: [
+          makeAccount({ id: '457', type: '457b', balance: 500000 }),
+          makeAccount({ id: 'cash', type: 'cash', balance: 50000, expectedReturn: 0 }),
+        ],
+        settings: { inflationRate: 0 },
+      });
+
+      const result = runSimulation(state);
+      const retYears = result.years.filter(y => y.phase === 'retirement');
+
+      // 457b should never incur early withdrawal penalty
+      for (const y of retYears) {
+        expect(y.earlyWithdrawalPenalty).toBe(0);
+      }
+    });
+  });
+
   describe('Hard/soft withdrawal limits', () => {
     it('hard limit generates annotations without capping spending', () => {
       const state = makeState({

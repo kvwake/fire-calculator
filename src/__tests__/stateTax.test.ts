@@ -50,6 +50,130 @@ describe('State Tax', () => {
       expect(calculateStateTax(0, 'CA', 'single')).toBe(0);
     });
 
+    describe('additional no-income-tax states', () => {
+      it('returns 0 for WY, SD, AK, NH, TN', () => {
+        const noTaxStates = ['WY', 'SD', 'AK', 'NH', 'TN'];
+        for (const st of noTaxStates) {
+          const info = getStateTaxInfo(st);
+          expect(info).not.toBeNull();
+          expect(info!.hasNoIncomeTax).toBe(true);
+          expect(calculateStateTax(80000, st, 'married')).toBe(0);
+          expect(calculateStateTax(250000, st, 'married')).toBe(0);
+        }
+      });
+    });
+
+    describe('New York - high progressive brackets', () => {
+      it('taxes moderate income ($80k MFJ)', () => {
+        const tax = calculateStateTax(80000, 'NY', 'married');
+        expect(tax).toBeGreaterThan(0);
+        // NY effective rate at $80k MFJ should be roughly 3-5%
+        expect(tax).toBeGreaterThan(80000 * 0.02);
+        expect(tax).toBeLessThan(80000 * 0.07);
+      });
+
+      it('taxes high income ($250k MFJ)', () => {
+        const tax = calculateStateTax(250000, 'NY', 'married');
+        expect(tax).toBeGreaterThan(0);
+        // Higher income = higher effective rate
+        const moderateTax = calculateStateTax(80000, 'NY', 'married');
+        expect(tax / 250000).toBeGreaterThan(moderateTax / 80000);
+      });
+    });
+
+    describe('Illinois - flat tax (4.95%)', () => {
+      it('taxes moderate income ($80k MFJ) at flat rate', () => {
+        // IL has no standard deduction, flat 4.95%
+        const tax = calculateStateTax(80000, 'IL', 'married');
+        expect(tax).toBeCloseTo(80000 * 0.0495, 0);
+      });
+
+      it('taxes high income ($250k MFJ) at flat rate', () => {
+        const tax = calculateStateTax(250000, 'IL', 'married');
+        expect(tax).toBeCloseTo(250000 * 0.0495, 0);
+      });
+
+      it('effective rate is the same at all income levels', () => {
+        const rate80k = calculateStateTax(80000, 'IL', 'married') / 80000;
+        const rate250k = calculateStateTax(250000, 'IL', 'married') / 250000;
+        expect(rate80k).toBeCloseTo(rate250k, 4);
+      });
+    });
+
+    describe('Pennsylvania - flat tax (3.07%)', () => {
+      it('taxes moderate income ($80k MFJ) at flat rate', () => {
+        const tax = calculateStateTax(80000, 'PA', 'married');
+        expect(tax).toBeCloseTo(80000 * 0.0307, 0);
+      });
+
+      it('taxes high income ($250k MFJ) at flat rate', () => {
+        const tax = calculateStateTax(250000, 'PA', 'married');
+        expect(tax).toBeCloseTo(250000 * 0.0307, 0);
+      });
+
+      it('PA rate is lower than IL rate', () => {
+        const paTax = calculateStateTax(100000, 'PA', 'married');
+        const ilTax = calculateStateTax(100000, 'IL', 'married');
+        expect(paTax).toBeLessThan(ilTax);
+      });
+    });
+
+    describe('Oregon - high progressive brackets', () => {
+      it('taxes moderate income ($80k MFJ)', () => {
+        const tax = calculateStateTax(80000, 'OR', 'married');
+        expect(tax).toBeGreaterThan(0);
+        // OR has high rates, effective rate should be notable
+        expect(tax).toBeGreaterThan(80000 * 0.03);
+      });
+
+      it('taxes high income ($250k MFJ)', () => {
+        const tax = calculateStateTax(250000, 'OR', 'married');
+        expect(tax).toBeGreaterThan(0);
+        expect(tax).toBeGreaterThan(250000 * 0.05);
+      });
+    });
+
+    describe('Minnesota - high progressive brackets', () => {
+      it('taxes moderate income ($80k MFJ)', () => {
+        const tax = calculateStateTax(80000, 'MN', 'married');
+        expect(tax).toBeGreaterThan(0);
+      });
+
+      it('taxes high income ($250k MFJ)', () => {
+        const tax = calculateStateTax(250000, 'MN', 'married');
+        expect(tax).toBeGreaterThan(0);
+        // Progressive: higher effective rate at $250k than $80k
+        const moderateTax = calculateStateTax(80000, 'MN', 'married');
+        expect(tax / 250000).toBeGreaterThan(moderateTax / 80000);
+      });
+    });
+
+    describe('Georgia - graduated brackets', () => {
+      it('taxes moderate income ($80k MFJ)', () => {
+        const tax = calculateStateTax(80000, 'GA', 'married');
+        expect(tax).toBeGreaterThan(0);
+      });
+
+      it('taxes high income ($250k MFJ)', () => {
+        const tax = calculateStateTax(250000, 'GA', 'married');
+        expect(tax).toBeGreaterThan(0);
+        expect(tax).toBeGreaterThan(calculateStateTax(80000, 'GA', 'married'));
+      });
+    });
+
+    describe('Ohio - graduated brackets', () => {
+      it('taxes moderate income ($80k MFJ)', () => {
+        const tax = calculateStateTax(80000, 'OH', 'married');
+        expect(tax).toBeGreaterThan(0);
+      });
+
+      it('taxes high income ($250k MFJ)', () => {
+        const tax = calculateStateTax(250000, 'OH', 'married');
+        expect(tax).toBeGreaterThan(0);
+        expect(tax).toBeGreaterThan(calculateStateTax(80000, 'OH', 'married'));
+      });
+    });
+
     it('handles SS exemptions for exempt states', () => {
       const info = getStateTaxInfo('CA');
       // CA exempts SS from state tax
